@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "577144537902",
+    "project_id": "condominioflutter",
+    "storage_bucket": "condominioflutter.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:577144537902:android:89b04adc085bebf8dcf0bf",
+        "android_client_info": {
+          "package_name": "com.br.app_port"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBzVlYt0kPX4HPZL6zPy9G5zzVu_qbpDCc"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

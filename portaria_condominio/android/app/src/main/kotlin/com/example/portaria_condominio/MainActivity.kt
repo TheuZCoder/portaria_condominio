@@ -1,4 +1,4 @@
-package com.example.portaria_condominio
+package com.br.app_port
 
 import io.flutter.embedding.android.FlutterActivity
 
