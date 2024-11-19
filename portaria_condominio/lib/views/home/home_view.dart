@@ -1,27 +1,50 @@
 import 'package:flutter/material.dart';
 
 class HomeView extends StatelessWidget {
-  const HomeView({Key? key}) : super(key: key);
+  const HomeView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Home'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings),
-            onPressed: () {
-              Navigator.pushNamed(context, '/configuracoes');
-            },
-          ),
-          IconButton(
-            icon: const Icon(Icons.logout),
-            onPressed: () {
-              Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
-            },
-          ),
-        ],
+      ),
+      drawer: Drawer(
+        child: Column(
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor,
+              ),
+              child: Center(
+                child: Text(
+                  'Menu',
+                  style: Theme.of(context)
+                      .textTheme
+                      .titleLarge // Substituímos headline6 por titleLarge
+                      ?.copyWith(color: Colors.white),
+                ),
+              ),
+            ),
+            ListTile(
+              leading: const Icon(Icons.settings),
+              title: const Text('Configurações'),
+              onTap: () {
+                Navigator.pop(context); // Fecha o Drawer
+                Navigator.pushNamed(context, '/configuracoes');
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.logout),
+              title: const Text('Logout'),
+              onTap: () {
+                Navigator.pop(context); // Fecha o Drawer
+                Navigator.pushNamedAndRemoveUntil(
+                    context, '/login', (route) => false);
+              },
+            ),
+          ],
+        ),
       ),
       body: GridView(
         padding: const EdgeInsets.all(16),

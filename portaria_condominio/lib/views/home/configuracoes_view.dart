@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
 import '../../controllers/configuracoes_controller.dart';
 import '../../localizations/app_localizations.dart';
-import 'package:provider/provider.dart';
 
 class ConfiguracoesView extends StatelessWidget {
   const ConfiguracoesView({super.key});
