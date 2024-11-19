@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class VisitasView extends StatelessWidget {
-  const VisitasView({Key? key}) : super(key: key);
+  const VisitasView({super.key});
 
   @override
   Widget build(BuildContext context) {

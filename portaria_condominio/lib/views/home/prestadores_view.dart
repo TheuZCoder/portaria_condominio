@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 class PrestadoresView extends StatelessWidget {
-  const PrestadoresView({Key? key}) : super(key: key);
+  const PrestadoresView({super.key});
 
   @override
   Widget build(BuildContext context) {

@@ -1,13 +1,13 @@
 import 'package:flutter/material.dart';
 
 class PedidosView extends StatelessWidget {
-  const PedidosView({Key? key}) : super(key: key);
+  const PedidosView({super.key});
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Pedidos')),
-      body: Center(
+      body: const Center(
         child: Text('Tela de Pedidos - Em desenvolvimento'),
       ),
     );

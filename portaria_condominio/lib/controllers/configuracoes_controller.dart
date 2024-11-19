@@ -1,29 +1,34 @@
 import 'package:flutter/material.dart';
+import '../utils/preferences.dart';
 
 class ConfiguracoesController extends ChangeNotifier {
-  // Estado do tema: Claro ou Escuro
   ThemeMode _themeMode = ThemeMode.light;
-
-  // Estado do idioma: Inglês (en) ou Português (pt)
   Locale _locale = const Locale('en');
 
-  // Getter para o modo de tema atual
   ThemeMode get themeMode => _themeMode;
-
-  // Getter para o idioma atual
   Locale get locale => _locale;
 
-  /// Alterna entre os temas (Claro e Escuro)
-  /// [isDarkMode] define se o tema será escuro (true) ou claro (false)
-  void toggleTheme(bool isDarkMode) {
-    _themeMode = isDarkMode ? ThemeMode.dark : ThemeMode.light;
-    notifyListeners(); // Notifica os listeners sobre a mudança
+  ConfiguracoesController() {
+    _loadPreferences();
   }
 
-  /// Altera o idioma do aplicativo
-  /// [languageCode] deve ser "en" (Inglês) ou "pt" (Português)
+  void _loadPreferences() async {
+    final isDarkMode = await Preferences.loadTheme();
+    final languageCode = await Preferences.loadLocale();
+    _themeMode = isDarkMode ? ThemeMode.dark : ThemeMode.light;
+    _locale = Locale(languageCode);
+    notifyListeners();
+  }
+
+  void toggleTheme(bool isDarkMode) {
+    _themeMode = isDarkMode ? ThemeMode.dark : ThemeMode.light;
+    Preferences.saveTheme(isDarkMode);
+    notifyListeners();
+  }
+
   void changeLanguage(String languageCode) {
     _locale = Locale(languageCode);
-    notifyListeners(); // Notifica os listeners sobre a mudança
+    Preferences.saveLocale(languageCode);
+    notifyListeners();
   }
 }
