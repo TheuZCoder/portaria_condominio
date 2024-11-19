@@ -67,7 +67,7 @@ class _MoradoresViewState extends State<MoradoresView> {
             _actionButton(
               icon: FontAwesomeIcons.whatsapp,
               label: 'WhatsApp',
-              onTap: () => _openWhatsApp('55123456789'),
+              onTap: () => _openWhatsApp('559123456789'),
             ),
             _actionButton(
               icon: Icons.map,
