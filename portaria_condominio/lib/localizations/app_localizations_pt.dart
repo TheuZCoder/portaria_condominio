@@ -8,4 +8,7 @@ const Map<String, String> localizedPt = {
   'theme': 'Tema',
   'dark_mode': 'Modo Escuro',
   'light_mode': 'Modo Claro',
+  'search_address': 'Buscar endereço...',
+  'no_residents_found': 'Nenhum morador encontrado.',
+  'map_title': 'Mapa',
 };

@@ -117,7 +117,7 @@ class _MoradoresViewState extends State<MoradoresView> {
             _actionButton(
               icon: Icons.map,
               label: 'Mapa',
-              onTap: () => _showAddress(index),
+              onTap: () => _showAddress(),
             ),
             _actionButton(
               icon: Icons.edit,
@@ -254,4 +254,8 @@ void openWhatsapp(
       }
     }
   }
+}
+
+void _showAddress() {
+
 }
