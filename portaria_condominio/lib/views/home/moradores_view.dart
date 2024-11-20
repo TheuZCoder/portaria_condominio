@@ -1,3 +1,7 @@
+// ignore_for_file: use_build_context_synchronously
+
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
@@ -67,7 +71,7 @@ class _MoradoresViewState extends State<MoradoresView> {
             _actionButton(
               icon: FontAwesomeIcons.whatsapp,
               label: 'WhatsApp',
-              onTap: () => _openWhatsApp('559123456789'),
+              onTap: () => openWhatsapp(context: context, text: "Mensagem de teste", number: "+5511987654321"),
             ),
             _actionButton(
               icon: Icons.map,
@@ -137,12 +141,32 @@ class _MoradoresViewState extends State<MoradoresView> {
     }
   }
 
-  void _openWhatsApp(String phoneNumber) async {
-    final String url = 'https://wa.me/$phoneNumber';
-    if (await canLaunchUrl(Uri.parse(url))) {
-      await launchUrl(Uri.parse(url));
+void openWhatsapp(
+      {required BuildContext context,
+      required String text,
+      required String number}) async {
+    var whatsapp = number; //+92xx enter like this
+    var whatsappURlAndroid =
+        "whatsapp://send?phone=$whatsapp&text=$text";
+    var whatsappURLIos = "https://wa.me/$whatsapp?text=${Uri.tryParse(text)}";
+    if (Platform.isIOS) {
+      // for iOS phone only
+      if (await canLaunchUrl(Uri.parse(whatsappURLIos))) {
+        await launchUrl(Uri.parse(
+          whatsappURLIos,
+        ));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Whatsapp not installed")));
+      }
     } else {
-      debugPrint('Não foi possível abrir o WhatsApp para $phoneNumber');
+      // android , web
+      if (await canLaunchUrl(Uri.parse(whatsappURlAndroid))) {
+        await launchUrl(Uri.parse(whatsappURlAndroid));
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Whatsapp not installed")));
+      }
     }
   }
 
