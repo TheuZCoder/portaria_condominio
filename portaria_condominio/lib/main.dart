@@ -1,12 +1,16 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:provider/provider.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'controllers/configuracoes_controller.dart';
 import 'localizations/app_localizations.dart';
 import 'routes/app_routes.dart';
 import 'themes/app_theme.dart';
 
-void main() {
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await Firebase.initializeApp(); // Inicialização do Firebase
+
   runApp(
     MultiProvider(
       providers: [
