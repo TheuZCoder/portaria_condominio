@@ -3,8 +3,11 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
-import 'package:url_launcher/url_launcher.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
+import 'package:portaria_condominio/controllers/morador_controller.dart';
+import 'package:url_launcher/url_launcher.dart';
+import '../../models/morador_model.dart';
+import 'cadastro_moradores_view.dart';
 
 class MoradoresView extends StatefulWidget {
   const MoradoresView({super.key});
@@ -14,43 +17,81 @@ class MoradoresView extends StatefulWidget {
 }
 
 class _MoradoresViewState extends State<MoradoresView> {
+  final MoradorController _controller = MoradorController();
   int? expandedIndex;
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Moradores')),
-      body: ListView.builder(
-        itemCount: 10, // Simulação
-        itemBuilder: (context, index) {
-          return AnimatedSize(
-            duration: const Duration(milliseconds: 300),
-            curve: Curves.easeInOut,
-            child: Card(
-              margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-              child: Column(
-                children: [
-                  ListTile(
-                    leading: const Icon(Icons.person),
-                    title: Text('Morador $index'),
-                    subtitle: const Text('Detalhes do morador'),
-                    onTap: () {
-                      setState(() {
-                        expandedIndex = (expandedIndex == index) ? null : index;
-                      });
-                    },
-                  ),
-                  if (expandedIndex == index) _expandedButtons(index),
-                ],
-              ),
-            ),
+      appBar: AppBar(
+        title: const Text('Moradores'),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const CadastroMoradoresView(),
+                ),
+              ).then((_) => setState(() {})); // Atualiza após retorno
+            },
+          ),
+        ],
+      ),
+      body: FutureBuilder<List<Morador>>(
+        future: _controller.buscarTodosMoradores(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+          if (snapshot.hasError) {
+            return Center(
+              child: Text('Erro: ${snapshot.error}'),
+            );
+          }
+          final moradores = snapshot.data ?? [];
+          if (moradores.isEmpty) {
+            return const Center(child: Text('Nenhum morador cadastrado.'));
+          }
+          return ListView.builder(
+            itemCount: moradores.length,
+            itemBuilder: (context, index) {
+              final morador = moradores[index];
+              return _buildMoradorCard(morador, index);
+            },
           );
         },
       ),
     );
   }
 
-  Widget _expandedButtons(int index) {
+  Widget _buildMoradorCard(Morador morador, int index) {
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        child: Column(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: Text(morador.nome),
+              subtitle: Text(morador.email),
+              onTap: () {
+                setState(() {
+                  expandedIndex = (expandedIndex == index) ? null : index;
+                });
+              },
+            ),
+            if (expandedIndex == index) _expandedButtons(morador),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _expandedButtons(Morador morador) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
       child: SingleChildScrollView(
@@ -61,12 +102,12 @@ class _MoradoresViewState extends State<MoradoresView> {
             _actionButton(
               icon: Icons.phone,
               label: 'Ligar',
-              onTap: () => _callProvider('55123456789'),
+              onTap: () => _callProvider(morador.telefone),
             ),
             _actionButton(
               icon: Icons.message,
               label: 'Mensagem',
-              onTap: () => _sendMessage('55123456789'),
+              onTap: () => _sendMessage(morador.telefone),
             ),
             _actionButton(
               icon: FontAwesomeIcons.whatsapp,
@@ -81,7 +122,12 @@ class _MoradoresViewState extends State<MoradoresView> {
             _actionButton(
               icon: Icons.edit,
               label: 'Editar',
-              onTap: () => _editResident(index),
+              onTap: () => _editResident(morador),
+            ),
+            _actionButton(
+              icon: Icons.delete,
+              label: 'Excluir',
+              onTap: () => _deleteResident(morador),
             ),
           ],
         ),
@@ -170,13 +216,42 @@ void openWhatsapp(
     }
   }
 
-  void _showAddress(int index) {
-    // Simulação de exibição de endereço
-    debugPrint('Exibindo endereço do morador $index');
+  void _editResident(Morador morador) {
+    // Adicionar lógica de edição futura
+    debugPrint('Editando morador ${morador.nome}');
   }
 
-  void _editResident(int index) {
-    // Simulação de edição
-    debugPrint('Editando informações do morador $index');
+  void _deleteResident(Morador morador) async {
+    final confirmation = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('Confirmar Exclusão'),
+        content: Text('Tem certeza que deseja excluir o morador ${morador.nome}?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('Cancelar'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text('Excluir'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmation == true) {
+      try {
+        await _controller.excluirMorador(morador.id);
+        setState(() {}); // Atualizar lista após exclusão
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Morador excluído com sucesso!')),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Erro ao excluir morador: $e')),
+        );
+      }
+    }
   }
 }
