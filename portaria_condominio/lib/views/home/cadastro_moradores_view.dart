@@ -17,6 +17,7 @@ class _CadastroMoradoresViewState extends State<CadastroMoradoresView> {
   final TextEditingController _nomeController = TextEditingController();
   final TextEditingController _cpfController = TextEditingController();
   final TextEditingController _telefoneController = TextEditingController();
+  final TextEditingController _enderecoController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
 
@@ -50,6 +51,12 @@ class _CadastroMoradoresViewState extends State<CadastroMoradoresView> {
                 validator: (value) =>
                     value!.isEmpty ? 'Informe o telefone' : null,
               ),
+              _buildTextField(
+                controller: _enderecoController,
+                label: 'Endereço',
+                keyboardType: TextInputType.emailAddress,
+                validator: (value) => value!.isEmpty ? 'Informe o endereço' : null,
+                ),
               _buildTextField(
                 controller: _emailController,
                 label: 'Email',
@@ -112,6 +119,7 @@ class _CadastroMoradoresViewState extends State<CadastroMoradoresView> {
           nome: _nomeController.text.trim(),
           cpf: _cpfController.text.trim(),
           telefone: _telefoneController.text.trim(),
+          endereco: _enderecoController.text.trim(),
           email: _emailController.text.trim(),
           senha: _senhaController.text.trim(),
         );
