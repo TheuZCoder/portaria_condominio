@@ -67,29 +67,78 @@ class _MoradoresViewState extends State<MoradoresView> {
   }
 
   Widget _buildMoradorCard(Morador morador, int index) {
-    return AnimatedSize(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        child: Column(
-          children: [
-            ListTile(
-              leading: const Icon(Icons.person),
-              title: Text(morador.nome),
-              subtitle: Text(morador.email),
-              onTap: () {
-                setState(() {
-                  expandedIndex = (expandedIndex == index) ? null : index;
-                });
-              },
+  final bool isExpanded = expandedIndex == index;
+
+  return AnimatedSize(
+    duration: const Duration(milliseconds: 300),
+    curve: Curves.easeInOut,
+    child: Card(
+      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Column(
+        children: [
+          ListTile(
+            leading: const Icon(Icons.person),
+            title: Text(morador.nome),
+            subtitle: Text(morador.email),
+            onTap: () {
+              setState(() {
+                expandedIndex = isExpanded ? null : index;
+              });
+            },
+            trailing: Icon(
+              isExpanded ? Icons.expand_less : Icons.expand_more,
             ),
-            if (expandedIndex == index) _expandedButtons(morador),
-          ],
+          ),
+          AnimatedSwitcher(
+            duration: const Duration(milliseconds: 300),
+            transitionBuilder: (child, animation) {
+              return SizeTransition(sizeFactor: animation, child: child);
+            },
+            child: isExpanded ? _expandedDetails(morador) : const SizedBox(),
+          ),
+        ],
+      ),
+    ),
+  );
+}
+
+Widget _expandedDetails(Morador morador) {
+  return Padding(
+    key: const ValueKey('expandedDetails'),
+    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _infoRow(label: 'CPF:', value: morador.cpf),
+        const SizedBox(height: 8),
+        _infoRow(label: 'Telefone:', value: morador.telefone),
+        const SizedBox(height: 8),
+        _infoRow(label: 'Endereço:', value: morador.endereco),
+        const SizedBox(height: 8),
+        _expandedButtons(morador),
+      ],
+    ),
+  );
+}
+
+Widget _infoRow({required String label, required String value}) {
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text(
+        '$label ',
+        style: const TextStyle(fontWeight: FontWeight.bold),
+      ),
+      Expanded(
+        child: Text(
+          value,
+          style: const TextStyle(color: Colors.black54),
         ),
       ),
-    );
-  }
+    ],
+  );
+}
+
 
   Widget _expandedButtons(Morador morador) {
     return Padding(

@@ -7,7 +7,8 @@ class Morador {
   final String telefone; // Telefone do morador
   final String email; // Email usado para login no Firebase Authentication
   final String senha; // Senha usada para login no Firebase Authentication
-  final String role; 
+  final String endereco;
+  final String role;
 
   // Construtor
   Morador({
@@ -17,6 +18,7 @@ class Morador {
     required this.telefone,
     required this.email,
     required this.senha,
+    required this.endereco,
     this.role = 'morador',
   });
 
@@ -30,6 +32,7 @@ class Morador {
       telefone: data['telefone'] ?? '',
       email: data['email'] ?? '',
       senha: data['senha'] ?? '',
+      endereco: data['endereco'] ?? '',
       role: data['role'] ?? 'morador',
     );
   }
@@ -42,6 +45,7 @@ class Morador {
       'telefone': telefone,
       'email': email,
       'senha': senha,
+      'endereco': endereco,
       'role': role,
     };
   }
