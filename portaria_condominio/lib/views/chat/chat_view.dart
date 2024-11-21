@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart'; // Para formatação de data/hora
-import '../../controllers/auth_controller.dart';
+import 'package:intl/intl.dart';
 import '../../controllers/chat_controller.dart';
+import '../../controllers/auth_controller.dart';
 import '../../models/message_model.dart';
 import 'chat_input_field.dart';
 
@@ -9,14 +9,17 @@ class ChatView extends StatelessWidget {
   final String receiverId;
   final String receiverName;
 
-  const ChatView({super.key, required this.receiverId, required this.receiverName});
+  const ChatView({
+    super.key,
+    required this.receiverId,
+    required this.receiverName,
+  });
 
   @override
   Widget build(BuildContext context) {
-    final ChatController chatController = ChatController();
-    final AuthController authController = AuthController();
-
-    final String? userId = authController.currentUserId;
+    final chatController = ChatController();
+    final authController = AuthController();
+    final userId = authController.currentUser?.uid;
 
     if (userId == null) {
       return Scaffold(
@@ -33,18 +36,15 @@ class ChatView extends StatelessWidget {
             child: StreamBuilder<List<Message>>(
               stream: chatController.getMessages(userId, receiverId),
               builder: (context, snapshot) {
-                if (!snapshot.hasData) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
                 }
 
-                final messages = snapshot.data!;
-
-                if (messages.isEmpty) {
-                  return const Center(
-                    child: Text('Nenhuma mensagem ainda.'),
-                  );
+                if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                  return const Center(child: Text('Nenhuma mensagem ainda.'));
                 }
 
+                final messages = snapshot.data!;
                 return ListView.builder(
                   reverse: true,
                   itemCount: messages.length,
@@ -99,7 +99,10 @@ class ChatView extends StatelessWidget {
               },
             ),
           ),
-          ChatInputField(chatController: chatController, receiverId: receiverId),
+          ChatInputField(
+            chatController: chatController,
+            receiverId: receiverId,
+          ),
         ],
       ),
     );

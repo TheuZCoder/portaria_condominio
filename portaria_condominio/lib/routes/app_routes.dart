@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../views/chat/chat_view.dart';
+import '../views/chat/user_list_view.dart';
 import '../views/home/configuracoes_view.dart';
 import '../views/home/home_view.dart';
 import '../views/home/mapa_view.dart';
@@ -22,7 +23,7 @@ class AppRoutes {
   static const String notificacoes = '/notificacoes';
   static const String mapa = '/mapa';
   static const String configuracoes = '/configuracoes';
-  static const String chat = '/chat';
+  static const String usersListView = '/UsersListView';
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -46,16 +47,8 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const MapaView());
       case configuracoes:
         return MaterialPageRoute(builder: (_) => const ConfiguracoesView());
-      case chat:
-        if (settings.arguments is Map) {
-          final args = settings.arguments as Map<String, dynamic>;
-          final receiverId = args['id'] as String;
-          final receiverName = args['nome'] as String;
-          return MaterialPageRoute(
-            builder: (_) => ChatView(receiverId: receiverId, receiverName: receiverName),
-          );
-        }
-        return _errorRoute();
+      case usersListView:
+        return MaterialPageRoute(builder: (_) => const UsersListView());
       default:
         return _errorRoute();
     }

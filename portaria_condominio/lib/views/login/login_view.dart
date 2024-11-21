@@ -1,8 +1,19 @@
 import 'package:flutter/material.dart';
+import '../../controllers/auth_controller.dart';
 import '../../localizations/app_localizations.dart';
 
-class LoginView extends StatelessWidget {
+class LoginView extends StatefulWidget {
   const LoginView({super.key});
+
+  @override
+  State<LoginView> createState() => _LoginViewState();
+}
+
+class _LoginViewState extends State<LoginView> {
+  final AuthController _authController = AuthController();
+  final TextEditingController _emailController = TextEditingController();
+  final TextEditingController _passwordController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   Widget build(BuildContext context) {
@@ -26,8 +37,9 @@ class LoginView extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 32),
-            // Campo de username
+            // Campo de email
             TextField(
+              controller: _emailController,
               decoration: InputDecoration(
                 labelText: appLocalizations.translate('username'),
               ),
@@ -35,80 +47,61 @@ class LoginView extends StatelessWidget {
             const SizedBox(height: 16),
             // Campo de senha
             TextField(
+              controller: _passwordController,
               decoration: InputDecoration(
                 labelText: appLocalizations.translate('password'),
               ),
               obscureText: true,
             ),
             const SizedBox(height: 16),
-            // Botões Lembrar email e ativar biometria
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                ElevatedButton.icon(
-                  onPressed: () {
-                    // Lógica para lembrar email
-                  },
-                  icon: const Icon(Icons.email),
-                  label: const Text('Lembrar Email'),
-                ),
-                ElevatedButton.icon(
-                  onPressed: () {
-                    // Lógica para ativar biometria
-                  },
-                  icon: const Icon(Icons.fingerprint),
-                  label: const Text('Biometria'),
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
             // Botão de Login
-            ElevatedButton(
-              onPressed: () {
-                Navigator.pushNamed(context, '/home');
-              },
-              child: Text(appLocalizations.translate('login_button')),
-            ),
-            const SizedBox(height: 16),
-            // Botão de autenticação com Google
-            ElevatedButton.icon(
-              onPressed: () {
-                // Lógica de autenticação com Google
-              },
-              icon: const Icon(Icons.g_mobiledata, size: 30),
-              label: const Text('Entrar com Google'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: Colors.red,
-                foregroundColor: Colors.white,
-              ),
-            ),
-            const SizedBox(height: 16),
-            // Mensagem "Ainda não possui cadastro?"
-            Center(
-              child: GestureDetector(
-                onTap: () {
-                  Navigator.pushNamed(context, '/signup');
-                },
-                child: Text.rich(
-                  TextSpan(
-                    text: 'Ainda não possui cadastro? ',
-                    style: const TextStyle(color: Colors.black),
-                    children: [
-                      TextSpan(
-                        text: 'Crie uma conta',
-                        style: TextStyle(
-                          color: Theme.of(context).primaryColor,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
+            _isLoading
+                ? const Center(child: CircularProgressIndicator())
+                : ElevatedButton(
+                    onPressed: _handleLogin,
+                    child: Text(appLocalizations.translate('login_button')),
                   ),
-                ),
-              ),
-            ),
           ],
         ),
       ),
     );
+  }
+
+  Future<void> _handleLogin() async {
+    setState(() {
+      _isLoading = true;
+    });
+
+    try {
+      final role = await _authController.signIn(
+        _emailController.text.trim(),
+        _passwordController.text.trim(),
+      );
+
+      if (role == 'morador') {
+        Navigator.pushReplacementNamed(context, '/home');
+      } else if (role == 'admin') {
+        Navigator.pushReplacementNamed(context, '/home');
+      } else {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Usuário não reconhecido.')),
+        );
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao fazer login: $e')),
+      );
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _emailController.dispose();
+    _passwordController.dispose();
+    super.dispose();
   }
 }

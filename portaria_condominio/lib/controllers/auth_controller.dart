@@ -1,22 +1,42 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
 class AuthController {
   final FirebaseAuth _auth = FirebaseAuth.instance;
+  final FirebaseFirestore _firestore = FirebaseFirestore.instance;
 
   /// Retorna o usuário atual autenticado
   User? get currentUser => _auth.currentUser;
 
-  /// Retorna o UID do usuário atual
-  String? get currentUserId => _auth.currentUser?.uid;
-
-  /// Faz login com email e senha
-  Future<User?> signIn(String email, String password) async {
+  /// Faz login com email e senha e retorna o tipo de usuário (role)
+  Future<String?> signIn(String email, String password) async {
     try {
+      // Login no Firebase Authentication
       UserCredential userCredential = await _auth.signInWithEmailAndPassword(
         email: email,
         password: password,
       );
-      return userCredential.user;
+
+      // Obter UID do usuário
+      String uid = userCredential.user!.uid;
+
+      // Buscar role no Firestore
+      DocumentSnapshot<Map<String, dynamic>> userDoc =
+          await _firestore.collection('moradores').doc(uid).get();
+
+      if (userDoc.exists) {
+        return userDoc.data()?['role'] ?? 'morador';
+      }
+
+      // Caso não seja um morador, verificar se é uma portaria
+      userDoc = await _firestore.collection('portarias').doc(uid).get();
+
+      if (userDoc.exists) {
+        return userDoc.data()?['role'] ?? 'admin';
+      }
+
+      // Retornar null se não encontrar o usuário
+      return null;
     } catch (e) {
       throw Exception('Erro ao fazer login: $e');
     }
@@ -28,19 +48,6 @@ class AuthController {
       await _auth.signOut();
     } catch (e) {
       throw Exception('Erro ao fazer logout: $e');
-    }
-  }
-
-  /// Registra um novo usuário (opcional)
-  Future<User?> register(String email, String password) async {
-    try {
-      UserCredential userCredential = await _auth.createUserWithEmailAndPassword(
-        email: email,
-        password: password,
-      );
-      return userCredential.user;
-    } catch (e) {
-      throw Exception('Erro ao registrar usuário: $e');
     }
   }
 }

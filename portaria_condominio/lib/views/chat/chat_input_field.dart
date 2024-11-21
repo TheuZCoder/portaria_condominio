@@ -7,36 +7,54 @@ class ChatInputField extends StatefulWidget {
   final ChatController chatController;
   final String receiverId;
 
-  const ChatInputField({super.key, required this.chatController, required this.receiverId});
+  const ChatInputField({
+    super.key,
+    required this.chatController,
+    required this.receiverId,
+  });
 
   @override
   State<ChatInputField> createState() => _ChatInputFieldState();
 }
 
 class _ChatInputFieldState extends State<ChatInputField> {
-  final TextEditingController _controller = TextEditingController();
+  final TextEditingController _messageController = TextEditingController();
   final AuthController _authController = AuthController();
+  bool _isSending = false;
 
   void _sendMessage() async {
-    final String? senderId = _authController.currentUserId;
-    if (senderId == null || _controller.text.trim().isEmpty) {
-      return; // Não faz nada se o ID do remetente não estiver disponível ou a mensagem estiver vazia
+    final String? senderId = _authController.currentUser as String?;
+    final String messageContent = _messageController.text.trim();
+
+    if (senderId == null || messageContent.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Mensagem vazia ou usuário não autenticado.')),
+      );
+      return;
     }
+
+    setState(() {
+      _isSending = true;
+    });
 
     final message = Message(
       senderId: senderId,
       receiverId: widget.receiverId,
-      content: _controller.text.trim(),
+      content: messageContent,
       timestamp: DateTime.now(),
     );
 
     try {
       await widget.chatController.sendMessage(message);
-      _controller.clear(); // Limpa o campo de entrada após o envio
+      _messageController.clear(); // Limpa o campo de entrada após o envio
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao enviar mensagem: $e')),
       );
+    } finally {
+      setState(() {
+        _isSending = false;
+      });
     }
   }
 
@@ -48,16 +66,22 @@ class _ChatInputFieldState extends State<ChatInputField> {
         children: [
           Expanded(
             child: TextField(
-              controller: _controller,
+              controller: _messageController,
               decoration: const InputDecoration(
                 hintText: 'Digite sua mensagem...',
                 border: OutlineInputBorder(),
               ),
+              textInputAction: TextInputAction.send,
+              onSubmitted: (_) => _sendMessage(), // Envia ao pressionar Enter
             ),
           ),
+          const SizedBox(width: 8),
           IconButton(
-            icon: const Icon(Icons.send),
-            onPressed: _sendMessage,
+            icon: Icon(
+              _isSending ? Icons.hourglass_empty : Icons.send,
+              color: Theme.of(context).primaryColor,
+            ),
+            onPressed: _isSending ? null : _sendMessage,
           ),
         ],
       ),
@@ -66,7 +90,7 @@ class _ChatInputFieldState extends State<ChatInputField> {
 
   @override
   void dispose() {
-    _controller.dispose();
+    _messageController.dispose();
     super.dispose();
   }
 }
