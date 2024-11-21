@@ -21,8 +21,8 @@ class LoginView extends StatelessWidget {
             // Logo da empresa
             Center(
               child: Image.asset(
-                'assets/logo.png', // Substitua pelo caminho do logo
-                height: 120,
+                'assets/img/logo.png', // Substitua pelo caminho do logo
+                height: 250,
               ),
             ),
             const SizedBox(height: 32),

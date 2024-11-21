@@ -47,7 +47,7 @@ class _MyAppState extends State<MyApp> {
         GlobalCupertinoLocalizations.delegate,
       ],
       initialRoute: AppRoutes.login,
-      routes: AppRoutes.routes,
+      onGenerateRoute: AppRoutes.onGenerateRoute, // Usar rotas dinâmicas
     );
   }
 }

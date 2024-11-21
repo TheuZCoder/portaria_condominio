@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../controllers/morador_controller.dart';
 import '../../controllers/prestador_controller.dart';
-import '../../controllers/auth_controller.dart';
 import '../../models/morador_model.dart';
 import '../../models/prestador_model.dart';
 
@@ -18,6 +17,7 @@ class _ContactsListViewState extends State<ContactsListView> {
 
   List<Morador> _moradores = [];
   List<Prestador> _prestadores = [];
+  bool _isLoading = true;
 
   @override
   void initState() {
@@ -32,8 +32,12 @@ class _ContactsListViewState extends State<ContactsListView> {
       setState(() {
         _moradores = moradores;
         _prestadores = prestadores;
+        _isLoading = false;
       });
     } catch (e) {
+      setState(() {
+        _isLoading = false;
+      });
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao carregar contatos: $e')),
       );
@@ -42,24 +46,66 @@ class _ContactsListViewState extends State<ContactsListView> {
 
   @override
   Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (_moradores.isEmpty && _prestadores.isEmpty) {
+      return const Center(
+        child: Text('Nenhum contato encontrado.'),
+      );
+    }
+
     return ListView(
       children: [
-        ..._moradores.map((morador) => ListTile(
-              leading: const Icon(Icons.person),
-              title: Text(morador.nome),
-              subtitle: const Text('Morador'),
-              onTap: () {
-                Navigator.pushNamed(context, '/chat', arguments: morador);
-              },
-            )),
-        ..._prestadores.map((prestador) => ListTile(
-              leading: const Icon(Icons.build),
-              title: Text(prestador.nome),
-              subtitle: const Text('Prestador'),
-              onTap: () {
-                Navigator.pushNamed(context, '/chat', arguments: prestador);
-              },
-            )),
+        if (_moradores.isNotEmpty) ...[
+          const Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Text(
+              'Moradores',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ),
+          ..._moradores.map((morador) => ListTile(
+                leading: const Icon(Icons.person),
+                title: Text(morador.nome),
+                subtitle: Text(morador.email), // Mostra o e-mail do morador
+                onTap: () {
+                  Navigator.pushNamed(
+                    context,
+                    '/chat',
+                    arguments: {
+                      'id': morador.id,
+                      'nome': morador.nome,
+                    },
+                  );
+                },
+              )),
+        ],
+        if (_prestadores.isNotEmpty) ...[
+          const Padding(
+            padding: EdgeInsets.all(8.0),
+            child: Text(
+              'Prestadores',
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+            ),
+          ),
+          ..._prestadores.map((prestador) => ListTile(
+                leading: const Icon(Icons.build),
+                title: Text(prestador.nome),
+                subtitle: Text(prestador.empresa), // Mostra a empresa associada
+                onTap: () {
+                  Navigator.pushNamed(
+                    context,
+                    '/chat',
+                    arguments: {
+                      'id': prestador.id,
+                      'nome': prestador.nome,
+                    },
+                  );
+                },
+              )),
+        ],
       ],
     );
   }

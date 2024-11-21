@@ -60,6 +60,7 @@ class HomeView extends StatelessWidget {
           _menuItem(context, 'Pedidos', Icons.shopping_cart, '/pedidos'),
           _menuItem(context, 'Notificações', Icons.notifications, '/notificacoes'),
           _menuItem(context, 'Mapa', Icons.map, '/mapa'),
+          _menuItem(context, 'Chat', Icons.chat_bubble, '/chat')
         ],
       ),
     );
