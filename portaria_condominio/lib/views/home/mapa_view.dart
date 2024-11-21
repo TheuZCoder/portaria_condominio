@@ -3,6 +3,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart' as loc;
+import 'package:portaria_condominio/services/routing_service.dart';
 import '../../controllers/morador_controller.dart';
 import '../../models/morador_model.dart';
 
@@ -82,11 +83,19 @@ class _MapaViewState extends State<MapaView> {
       final locations = await locationFromAddress(address);
       if (locations.isNotEmpty) {
         final location = locations.first;
-        setState(() {
-          _destination = LatLng(location.latitude, location.longitude);
-          _routePoints = [_userLocation!, _destination!];
-        });
-        _mapController.move(_destination!, 18);
+        _destination = LatLng(location.latitude, location.longitude);
+
+        if (_userLocation != null) {
+          final routingService = RoutingService();
+          final route =
+              await routingService.getRoute(_userLocation!, _destination!);
+
+          setState(() {
+            _routePoints =
+                route; // Atualiza os pontos da rota com os dados da API
+          });
+          _mapController.move(_destination!, 15);
+        }
       }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -156,7 +165,7 @@ class _MapaViewState extends State<MapaView> {
                 ),
               ],
             ),
-          if (_destination != null)
+          if (_destination != null && _routePoints.isEmpty)
             MarkerLayer(
               markers: [
                 Marker(
@@ -192,15 +201,66 @@ class _MapaViewState extends State<MapaView> {
               itemCount: _moradores.length,
               itemBuilder: (context, index) {
                 final morador = _moradores[index];
-                return ListTile(
-                  leading: const Icon(Icons.person),
-                  title: Text(morador.nome),
-                  subtitle: Text(morador.endereco),
-                  onTap: () => _searchAddress(morador.endereco),
+                return Card(
+                  margin:
+                      const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  child: ListTile(
+                    leading: const Icon(Icons.person),
+                    title: Text(morador.nome),
+                    subtitle: Text(morador.endereco),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.directions),
+                      onPressed: () => _startRouteToMorador(morador.endereco),
+                    ),
+                    onTap: () => _showMoradorLocation(morador.endereco),
+                  ),
                 );
               },
             ),
     );
+  }
+
+  Future<void> _showMoradorLocation(String address) async {
+    try {
+      final locations = await locationFromAddress(address);
+      if (locations.isNotEmpty) {
+        final location = locations.first;
+        setState(() {
+          _destination = LatLng(location.latitude, location.longitude);
+          _routePoints.clear(); // Limpa a rota
+        });
+        _mapController.move(_destination!, 18); // Move o mapa para o endereço
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao buscar localização: $e')),
+      );
+    }
+  }
+
+  Future<void> _startRouteToMorador(String address) async {
+    try {
+      final locations = await locationFromAddress(address);
+      if (locations.isNotEmpty) {
+        final location = locations.first;
+        _destination = LatLng(location.latitude, location.longitude);
+
+        if (_userLocation != null) {
+          final routingService = RoutingService();
+          final route =
+              await routingService.getRoute(_userLocation!, _destination!);
+
+          setState(() {
+            _routePoints = route; // Define os pontos da rota
+          });
+          _mapController.move(_userLocation!, 15); // Move para o ponto inicial
+        }
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro ao iniciar rota: $e')),
+      );
+    }
   }
 
   @override
