@@ -19,7 +19,7 @@ class _MapaViewState extends State<MapaView> {
   final MoradorController _moradorController = MoradorController();
   final MapController _mapController = MapController();
 
-  LatLng _currentLocation =
+  final LatLng _currentLocation =
       const LatLng(-22.566451, -47.401524); // Centro de Limeira
   LatLng? _userLocation;
   LatLng? _destination;
