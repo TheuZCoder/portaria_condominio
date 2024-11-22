@@ -45,53 +45,69 @@ class ChatView extends StatelessWidget {
                 }
 
                 final messages = snapshot.data!;
+
                 return ListView.builder(
-                  reverse: true,
+                  reverse: false, // Desative o reverse para exibir em ordem de envio
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final message = messages[index];
                     final isSentByUser = message.senderId == userId;
 
-                    return Align(
-                      alignment: isSentByUser
-                          ? Alignment.centerRight
-                          : Alignment.centerLeft,
-                      child: Container(
-                        margin: const EdgeInsets.symmetric(
-                          vertical: 4,
-                          horizontal: 8,
-                        ),
-                        padding: const EdgeInsets.all(12),
-                        decoration: BoxDecoration(
-                          color: isSentByUser
-                              ? Colors.blueAccent
-                              : Colors.grey[300],
-                          borderRadius: BorderRadius.circular(12),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              message.content,
-                              style: TextStyle(
+                    return Container(
+                      padding: const EdgeInsets.symmetric(
+                        vertical: 4,
+                        horizontal: 16,
+                      ),
+                      child: Row(
+                        mainAxisAlignment: isSentByUser
+                            ? MainAxisAlignment.end // Mensagem do usuário à direita
+                            : MainAxisAlignment.start, // Mensagem recebida à esquerda
+                        children: [
+                          Flexible(
+                            child: Container(
+                              padding: const EdgeInsets.all(12),
+                              decoration: BoxDecoration(
                                 color: isSentByUser
-                                    ? Colors.white
-                                    : Colors.black87,
-                                fontSize: 16,
+                                    ? Colors.blueAccent
+                                    : Colors.grey[300],
+                                borderRadius: BorderRadius.only(
+                                  topLeft: const Radius.circular(12),
+                                  topRight: const Radius.circular(12),
+                                  bottomLeft: isSentByUser
+                                      ? const Radius.circular(12)
+                                      : const Radius.circular(0),
+                                  bottomRight: isSentByUser
+                                      ? const Radius.circular(0)
+                                      : const Radius.circular(12),
+                                ),
+                              ),
+                              child: Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    message.content,
+                                    style: TextStyle(
+                                      color: isSentByUser
+                                          ? Colors.white
+                                          : Colors.black87,
+                                      fontSize: 16,
+                                    ),
+                                  ),
+                                  const SizedBox(height: 4),
+                                  Text(
+                                    DateFormat('HH:mm').format(message.timestamp),
+                                    style: TextStyle(
+                                      color: isSentByUser
+                                          ? Colors.white70
+                                          : Colors.black54,
+                                      fontSize: 12,
+                                    ),
+                                  ),
+                                ],
                               ),
                             ),
-                            const SizedBox(height: 4),
-                            Text(
-                              DateFormat('HH:mm').format(message.timestamp),
-                              style: TextStyle(
-                                color: isSentByUser
-                                    ? Colors.white70
-                                    : Colors.black54,
-                                fontSize: 12,
-                              ),
-                            ),
-                          ],
-                        ),
+                          ),
+                        ],
                       ),
                     );
                   },
