@@ -23,7 +23,7 @@ class AppRoutes {
   static const String notificacoes = '/notificacoes';
   static const String mapa = '/mapa';
   static const String configuracoes = '/configuracoes';
-  static const String usersListView = '/UsersListView';
+  static const String usersListView = '/usersListView';
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     switch (settings.name) {
@@ -49,6 +49,18 @@ class AppRoutes {
         return MaterialPageRoute(builder: (_) => const ConfiguracoesView());
       case usersListView:
         return MaterialPageRoute(builder: (_) => const UsersListView());
+      case '/chat':
+        if (settings.arguments is Map<String, dynamic>) {
+          final args = settings.arguments as Map<String, dynamic>;
+          final receiverId = args['id'] as String;
+          final receiverName = args['nome'] as String;
+          return MaterialPageRoute(
+            builder: (_) =>
+                ChatView(receiverId: receiverId, receiverName: receiverName),
+          );
+        } else {
+          return _errorRoute(); // Rota de erro se os argumentos estiverem incorretos
+        }
       default:
         return _errorRoute();
     }
