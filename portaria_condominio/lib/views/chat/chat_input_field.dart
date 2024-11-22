@@ -23,7 +23,7 @@ class _ChatInputFieldState extends State<ChatInputField> {
   bool _isSending = false;
 
   void _sendMessage() async {
-    final String? senderId = _authController.currentUser as String?;
+    final String? senderId = _authController.currentUser?.uid;
     final String messageContent = _messageController.text.trim();
 
     if (senderId == null || messageContent.isEmpty) {
