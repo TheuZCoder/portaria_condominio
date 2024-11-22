@@ -47,7 +47,7 @@ class ChatView extends StatelessWidget {
                 final messages = snapshot.data!;
 
                 return ListView.builder(
-                  reverse: false, // Desative o reverse para exibir em ordem de envio
+                  reverse: true, // Desative o reverse para exibir em ordem de envio
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final message = messages[index];
