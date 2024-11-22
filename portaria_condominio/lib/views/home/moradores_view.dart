@@ -3,7 +3,9 @@
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:portaria_condominio/controllers/morador_controller.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../controllers/configuracoes_controller.dart';
 import '../../models/morador_model.dart';
 import 'cadastro_moradores_view.dart';
 
@@ -199,6 +201,8 @@ class _MoradoresViewState extends State<MoradoresView> {
     required String label,
     required VoidCallback onTap,
   }) {
+    final configController = context.read<ConfiguracoesController>();
+
     return Column(
       children: [
         InkWell(
@@ -209,7 +213,8 @@ class _MoradoresViewState extends State<MoradoresView> {
             height: 60,
             margin: const EdgeInsets.symmetric(horizontal: 8.0),
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor,
+              color:
+                  configController.iconColor ?? Theme.of(context).primaryColor,
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: Colors.white, size: 30),
@@ -218,7 +223,10 @@ class _MoradoresViewState extends State<MoradoresView> {
         const SizedBox(height: 8),
         Text(
           label,
-          style: const TextStyle(fontSize: 12),
+          style: TextStyle(
+            fontSize: 12,
+            color: Theme.of(context).textTheme.bodyLarge?.color,
+          ),
           textAlign: TextAlign.center,
         ),
       ],

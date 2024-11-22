@@ -9,11 +9,11 @@ class HomeView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final configController = context.watch<ConfiguracoesController>();
-    final appLocalizations = AppLocalizations.of(context);
+    final localizations = AppLocalizations.of(context);
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(appLocalizations.translate('home_title')),
+        title: Text(localizations.translate('home_title')),
       ),
       drawer: Drawer(
         child: Column(
@@ -24,7 +24,7 @@ class HomeView extends StatelessWidget {
               ),
               child: Center(
                 child: Text(
-                  appLocalizations.translate('menu'),
+                  localizations.translate('menu'),
                   style: Theme.of(context).textTheme.titleLarge?.copyWith(
                         color: Colors.white,
                       ),
@@ -33,7 +33,7 @@ class HomeView extends StatelessWidget {
             ),
             ListTile(
               leading: Icon(Icons.settings, color: configController.iconColor),
-              title: Text(appLocalizations.translate('settings')),
+              title: Text(localizations.translate('settings')),
               onTap: () {
                 Navigator.pop(context); // Fecha o Drawer
                 Navigator.pushNamed(context, '/configuracoes');
@@ -41,7 +41,7 @@ class HomeView extends StatelessWidget {
             ),
             ListTile(
               leading: Icon(Icons.logout, color: configController.iconColor),
-              title: Text(appLocalizations.translate('logout')),
+              title: Text(localizations.translate('logout')),
               onTap: () {
                 Navigator.pop(context); // Fecha o Drawer
                 Navigator.pushNamedAndRemoveUntil(
@@ -59,19 +59,19 @@ class HomeView extends StatelessWidget {
           crossAxisSpacing: 16,
         ),
         children: [
-          _menuItem(context, appLocalizations.translate('residents'),
+          _menuItem(context, localizations.translate('residents'),
               Icons.people, '/moradores', configController.iconColor),
-          _menuItem(context, appLocalizations.translate('service_providers'),
+          _menuItem(context, localizations.translate('service_providers'),
               Icons.work, '/prestadores', configController.iconColor),
-          _menuItem(context, appLocalizations.translate('visits'),
+          _menuItem(context, localizations.translate('visits'),
               Icons.person_add, '/visitas', configController.iconColor),
-          _menuItem(context, appLocalizations.translate('orders'),
+          _menuItem(context, localizations.translate('orders'),
               Icons.shopping_cart, '/pedidos', configController.iconColor),
-          _menuItem(context, appLocalizations.translate('notifications'),
+          _menuItem(context, localizations.translate('notifications'),
               Icons.notifications, '/notificacoes', configController.iconColor),
-          _menuItem(context, appLocalizations.translate('map'), Icons.map,
+          _menuItem(context, localizations.translate('map'), Icons.map,
               '/mapa', configController.iconColor),
-          _menuItem(context, appLocalizations.translate('chat'),
+          _menuItem(context, localizations.translate('chat'),
               Icons.chat_bubble, '/usersListView', configController.iconColor),
         ],
       ),

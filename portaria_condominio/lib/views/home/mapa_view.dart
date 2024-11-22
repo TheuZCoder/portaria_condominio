@@ -1,9 +1,14 @@
+// ignore_for_file: use_build_context_synchronously
+
 import 'package:flutter/material.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:latlong2/latlong.dart';
 import 'package:location/location.dart' as loc;
-import 'package:portaria_condominio/services/routing_service.dart';
+import 'package:provider/provider.dart';
+import '../../controllers/configuracoes_controller.dart';
+import '../../localizations/app_localizations.dart'; // Import das traduções
+import '../../services/routing_service.dart';
 import '../../controllers/morador_controller.dart';
 import '../../models/morador_model.dart';
 
@@ -106,27 +111,30 @@ class _MapaViewState extends State<MapaView> {
 
   @override
   Widget build(BuildContext context) {
+    final configController = context.watch<ConfiguracoesController>();
+    final localizations = AppLocalizations.of(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Mapa'),
+        title: Text(localizations.translate('map_title')),
       ),
       body: Column(
         children: [
-          _buildSearchField(),
-          _buildMap(),
-          _buildMoradorList(),
+          _buildSearchField(localizations),
+          _buildMap(configController),
+          _buildMoradorList(localizations, configController),
         ],
       ),
     );
   }
 
-  Widget _buildSearchField() {
+  Widget _buildSearchField(AppLocalizations localizations) {
     return Padding(
       padding: const EdgeInsets.all(8.0),
       child: TextField(
         controller: _searchController,
         decoration: InputDecoration(
-          hintText: 'Buscar endereço...',
+          hintText: localizations.translate('search_address'),
           suffixIcon: IconButton(
             icon: const Icon(Icons.search),
             onPressed: () => _searchAddress(_searchController.text),
@@ -137,7 +145,7 @@ class _MapaViewState extends State<MapaView> {
     );
   }
 
-  Widget _buildMap() {
+  Widget _buildMap(ConfiguracoesController configController) {
     return Expanded(
       flex: 2,
       child: FlutterMap(
@@ -157,10 +165,10 @@ class _MapaViewState extends State<MapaView> {
               markers: [
                 Marker(
                   point: _userLocation!,
-                  child: const Icon(
+                  child: Icon(
                     Icons.my_location,
                     size: 40,
-                    color: Colors.blue,
+                    color: configController.iconColor,
                   ),
                 ),
               ],
@@ -170,10 +178,10 @@ class _MapaViewState extends State<MapaView> {
               markers: [
                 Marker(
                   point: _destination!,
-                  child: const Icon(
+                  child: Icon(
                     Icons.location_on,
                     size: 40,
-                    color: Colors.red,
+                    color: configController.iconColor,
                   ),
                 ),
               ],
@@ -183,7 +191,7 @@ class _MapaViewState extends State<MapaView> {
               polylines: [
                 Polyline(
                   points: _routePoints,
-                  color: Colors.blue,
+                  color: configController.iconColor,
                   strokeWidth: 5.0,
                 ),
               ],
@@ -193,10 +201,11 @@ class _MapaViewState extends State<MapaView> {
     );
   }
 
-  Widget _buildMoradorList() {
+  Widget _buildMoradorList(
+      AppLocalizations localizations, ConfiguracoesController configController) {
     return Expanded(
       child: _moradores.isEmpty
-          ? const Center(child: Text('Nenhum morador encontrado.'))
+          ? Center(child: Text(localizations.translate('no_residents_found')))
           : ListView.builder(
               itemCount: _moradores.length,
               itemBuilder: (context, index) {
@@ -205,11 +214,15 @@ class _MapaViewState extends State<MapaView> {
                   margin:
                       const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
                   child: ListTile(
-                    leading: const Icon(Icons.person),
+                    leading: Icon(
+                      Icons.person,
+                      color: configController.iconColor,
+                    ),
                     title: Text(morador.nome),
                     subtitle: Text(morador.endereco),
                     trailing: IconButton(
-                      icon: const Icon(Icons.directions),
+                      icon: Icon(Icons.directions,
+                          color: configController.iconColor),
                       onPressed: () => _startRouteToMorador(morador.endereco),
                     ),
                     onTap: () => _showMoradorLocation(morador.endereco),

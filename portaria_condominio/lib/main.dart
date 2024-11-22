@@ -40,6 +40,7 @@ class _MyAppState extends State<MyApp> {
       themeMode: configController.themeMode,
       locale: configController.locale,
       supportedLocales: AppLocalizations.supportedLocales,
+      debugShowCheckedModeBanner: false,
       localizationsDelegates: const [
         AppLocalizations.delegate,
         GlobalMaterialLocalizations.delegate,

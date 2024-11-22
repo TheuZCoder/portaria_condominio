@@ -11,4 +11,5 @@ const Map<String, String> localizedPt = {
   'search_address': 'Buscar endereço...',
   'no_residents_found': 'Nenhum morador encontrado.',
   'map_title': 'Mapa',
+  'home_title': 'Inicio',
 };
