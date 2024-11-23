@@ -5,33 +5,43 @@ import 'package:provider/provider.dart';
 import '../../controllers/configuracoes_controller.dart';
 import '../../localizations/app_localizations.dart';
 
+
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
 
+
+  /// Obtém o papel (role) do usuário autenticado
   Future<String> _getUserRole() async {
-    // Obtenha o ID do usuário autenticado
     final user = FirebaseAuth.instance.currentUser;
+
+
+    // Verifica se o usuário está autenticado
     if (user == null) {
       return 'unknown';
     }
 
-    // Busque o papel do usuário no Firestore
+
+    // Busca o papel no Firestore
     final doc = await FirebaseFirestore.instance.collection('moradores').doc(user.uid).get();
     if (doc.exists) {
       return doc.data()?['role'] ?? 'unknown';
     }
-
     return 'unknown';
   }
 
+
   @override
   Widget build(BuildContext context) {
-    // Obtenha as configurações e as traduções
+    // Obtém configurações e traduções
     final configController = Provider.of<ConfiguracoesController>(context);
     final localizations = AppLocalizations.of(context);
 
+
     return Scaffold(
-      body: SafeArea(
+      appBar: AppBar(
+        title: Text(localizations.translate('home_title')),
+      ),
+      drawer: Drawer(
         child: Column(
           children: [
             DrawerHeader(
@@ -40,25 +50,24 @@ class HomeView extends StatelessWidget {
               ),
               child: Center(
                 child: Text(
-                  'Menu',
-                  style: Theme.of(context)
-                      .textTheme
-                      .titleLarge
-                      ?.copyWith(color: Colors.white),
+                  localizations.translate('menu'),
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        color: Colors.white,
+                      ),
                 ),
               ),
             ),
             ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Configurações'),
+              leading: Icon(Icons.settings, color: configController.iconColor),
+              title: Text(localizations.translate('settings')),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.pushNamed(context, '/configuracoes');
               },
             ),
             ListTile(
-              leading: const Icon(Icons.logout),
-              title: const Text('Logout'),
+              leading: Icon(Icons.logout, color: configController.iconColor),
+              title: Text(localizations.translate('logout')),
               onTap: () {
                 Navigator.pop(context);
                 Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
@@ -74,19 +83,25 @@ class HomeView extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
+
           final userRole = snapshot.data ?? 'unknown';
 
-          // Defina os itens do menu com base no papel do usuário
+
+          // Definir itens de menu com base no papel do usuário
           final menuItems = <Widget>[
-            if (userRole == 'portaria')
-              _menuItem(context, 'Moradores', Icons.people, '/moradores'),
-            _menuItem(context, 'Prestadores', Icons.work, '/prestadores'),
-            _menuItem(context, 'Visitas', Icons.person_add, '/visitas'),
-            _menuItem(context, 'Pedidos', Icons.shopping_cart, '/pedidos'),
-            _menuItem(context, 'Notificações', Icons.notifications, '/notificacoes'),
-            _menuItem(context, 'Mapa', Icons.map, '/mapa'),
-            _menuItem(context, 'Chat', Icons.chat_bubble, '/usersListView'),
+            if (userRole == 'portaria' || userRole == 'admin')
+              _menuItem(context, localizations.translate('residents'), Icons.people, '/moradores', configController),
+            if (userRole != 'visitor')
+              _menuItem(context, localizations.translate('providers'), Icons.work, '/prestadores', configController),
+            if (userRole != 'visitor')
+              _menuItem(context, localizations.translate('visits'), Icons.person_add, '/visitas', configController),
+            _menuItem(context, localizations.translate('orders'), Icons.shopping_cart, '/pedidos', configController),
+            _menuItem(context, localizations.translate('notifications'), Icons.notifications, '/notificacoes', configController),
+            _menuItem(context, localizations.translate('map'), Icons.map, '/mapa', configController),
+            if (userRole != 'visitor')
+              _menuItem(context, localizations.translate('chat'), Icons.chat_bubble, '/usersListView', configController),
           ];
+
 
           return GridView(
             padding: const EdgeInsets.all(16),
@@ -101,6 +116,7 @@ class HomeView extends StatelessWidget {
       ),
     );
   }
+
 
   Widget _menuItem(
     BuildContext context,
@@ -119,16 +135,14 @@ class HomeView extends StatelessWidget {
             Icon(
               icon,
               size: 48,
-              color:
-                  configController.iconColor ?? Theme.of(context).primaryColor,
+              color: configController.iconColor,
             ),
             const SizedBox(height: 8),
             Text(
               label,
               textAlign: TextAlign.center,
               style: TextStyle(
-                color: configController.iconColor ??
-                    Theme.of(context).primaryColor,
+                color: configController.iconColor,
               ),
             ),
           ],
