@@ -1,11 +1,11 @@
 // ignore_for_file: use_build_context_synchronously
 
-import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:portaria_condominio/controllers/morador_controller.dart';
+import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../controllers/configuracoes_controller.dart';
 import '../../models/morador_model.dart';
 import 'cadastro_moradores_view.dart';
 
@@ -19,6 +19,13 @@ class MoradoresView extends StatefulWidget {
 class _MoradoresViewState extends State<MoradoresView> {
   final MoradorController _controller = MoradorController();
   int? expandedIndex;
+  late Future<List<Morador>> _futureMoradores;
+
+  @override
+  void initState() {
+    super.initState();
+    _futureMoradores = _controller.buscarTodosMoradores();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -34,13 +41,15 @@ class _MoradoresViewState extends State<MoradoresView> {
                 MaterialPageRoute(
                   builder: (context) => const CadastroMoradoresView(),
                 ),
-              ).then((_) => setState(() {})); // Atualiza após retorno
+              ).then((_) => setState(() {
+                    _futureMoradores = _controller.buscarTodosMoradores();
+                  }));
             },
           ),
         ],
       ),
       body: FutureBuilder<List<Morador>>(
-        future: _controller.buscarTodosMoradores(),
+        future: _futureMoradores,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
@@ -67,78 +76,83 @@ class _MoradoresViewState extends State<MoradoresView> {
   }
 
   Widget _buildMoradorCard(Morador morador, int index) {
-  final bool isExpanded = expandedIndex == index;
+    final bool isExpanded = expandedIndex == index;
 
-  return AnimatedSize(
-    duration: const Duration(milliseconds: 300),
-    curve: Curves.easeInOut,
-    child: Card(
-      margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Column(
-        children: [
-          ListTile(
-            leading: const Icon(Icons.person),
-            title: Text(morador.nome),
-            subtitle: Text(morador.email),
-            onTap: () {
-              setState(() {
-                expandedIndex = isExpanded ? null : index;
-              });
-            },
-            trailing: Icon(
-              isExpanded ? Icons.expand_less : Icons.expand_more,
+    return AnimatedSize(
+      duration: const Duration(milliseconds: 300),
+      curve: Curves.easeInOut,
+      child: Card(
+        margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+        child: Column(
+          children: [
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: Text(morador.nome),
+              subtitle: Text(morador.email),
+              onTap: () {
+                setState(() {
+                  expandedIndex = isExpanded ? null : index;
+                });
+              },
+              trailing: Icon(
+                isExpanded ? Icons.expand_less : Icons.expand_more,
+              ),
             ),
-          ),
-          AnimatedSwitcher(
-            duration: const Duration(milliseconds: 300),
-            transitionBuilder: (child, animation) {
-              return SizeTransition(sizeFactor: animation, child: child);
-            },
-            child: isExpanded ? _expandedDetails(morador) : const SizedBox(),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-Widget _expandedDetails(Morador morador) {
-  return Padding(
-    key: const ValueKey('expandedDetails'),
-    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-    child: Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        _infoRow(label: 'CPF:', value: morador.cpf),
-        const SizedBox(height: 8),
-        _infoRow(label: 'Telefone:', value: morador.telefone),
-        const SizedBox(height: 8),
-        _infoRow(label: 'Endereço:', value: morador.endereco),
-        const SizedBox(height: 8),
-        _expandedButtons(morador),
-      ],
-    ),
-  );
-}
-
-Widget _infoRow({required String label, required String value}) {
-  return Row(
-    crossAxisAlignment: CrossAxisAlignment.start,
-    children: [
-      Text(
-        '$label ',
-        style: const TextStyle(fontWeight: FontWeight.bold),
-      ),
-      Expanded(
-        child: Text(
-          value,
-          style: const TextStyle(color: Colors.black54),
+            AnimatedSwitcher(
+              duration: const Duration(milliseconds: 300),
+              transitionBuilder: (child, animation) {
+                return SizeTransition(sizeFactor: animation, child: child);
+              },
+              child: isExpanded ? _expandedDetails(morador) : const SizedBox(),
+            ),
+          ],
         ),
       ),
-    ],
-  );
-}
+    );
+  }
 
+  Widget _expandedDetails(Morador morador) {
+    return Padding(
+      key: const ValueKey('expandedDetails'),
+      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _infoRow(label: 'CPF:', value: morador.cpf),
+          const SizedBox(height: 8),
+          _infoRow(label: 'Telefone:', value: morador.telefone),
+          const SizedBox(height: 8),
+          _infoRow(label: 'Endereço:', value: morador.endereco),
+          const SizedBox(height: 8),
+          _expandedButtons(morador),
+        ],
+      ),
+    );
+  }
+
+  Widget _infoRow({required String label, required String value}) {
+    final theme = Theme.of(context);
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          '$label ',
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+            color: theme.textTheme.bodyLarge?.color,
+          ),
+        ),
+        Expanded(
+          child: Text(
+            value,
+            style: TextStyle(
+              color: theme.textTheme.bodyLarge?.color?.withOpacity(0.7),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
 
   Widget _expandedButtons(Morador morador) {
     return Padding(
@@ -161,12 +175,10 @@ Widget _infoRow({required String label, required String value}) {
             _actionButton(
               icon: FontAwesomeIcons.whatsapp,
               label: 'WhatsApp',
-              onTap: () => openWhatsapp(context: context, text: "Mensagem de teste", number: "+5511987654321"),
-            ),
-            _actionButton(
-              icon: Icons.map,
-              label: 'Mapa',
-              onTap: () => _showAddress(),
+              onTap: () => openWhatsapp(
+                  context: context,
+                  text: "Olá, ${morador.nome}!",
+                  number: morador.telefone),
             ),
             _actionButton(
               icon: Icons.edit,
@@ -189,6 +201,8 @@ Widget _infoRow({required String label, required String value}) {
     required String label,
     required VoidCallback onTap,
   }) {
+    final configController = context.read<ConfiguracoesController>();
+
     return Column(
       children: [
         InkWell(
@@ -199,7 +213,8 @@ Widget _infoRow({required String label, required String value}) {
             height: 60,
             margin: const EdgeInsets.symmetric(horizontal: 8.0),
             decoration: BoxDecoration(
-              color: Theme.of(context).primaryColor,
+              color:
+                  configController.iconColor ?? Theme.of(context).primaryColor,
               shape: BoxShape.circle,
             ),
             child: Icon(icon, color: Colors.white, size: 30),
@@ -208,85 +223,187 @@ Widget _infoRow({required String label, required String value}) {
         const SizedBox(height: 8),
         Text(
           label,
-          style: const TextStyle(fontSize: 12),
+          style: TextStyle(
+            fontSize: 12,
+            color: Theme.of(context).textTheme.bodyLarge?.color,
+          ),
           textAlign: TextAlign.center,
         ),
       ],
     );
   }
 
+  // Métodos associados aos botões
   void _callProvider(String phone) async {
     final Uri phoneUrl = Uri(scheme: 'tel', path: phone);
     try {
-      final bool launched = await launchUrl(phoneUrl);
-      if (!launched) throw 'Não foi possível realizar a ligação';
+      if (await canLaunchUrl(phoneUrl)) {
+        await launchUrl(phoneUrl);
+      } else {
+        throw 'Não foi possível realizar a ligação';
+      }
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(e.toString())),
+        SnackBar(content: Text('Erro: $e')),
       );
     }
   }
 
   void _sendMessage(String phoneNumber) async {
     final Uri smsUri = Uri(scheme: 'sms', path: phoneNumber);
-    if (await canLaunchUrl(smsUri)) {
-      await launchUrl(smsUri);
-    } else {
-      debugPrint('Não foi possível enviar a mensagem para $phoneNumber');
+    try {
+      if (await canLaunchUrl(smsUri)) {
+        await launchUrl(smsUri);
+      } else {
+        throw 'Não foi possível enviar a mensagem.';
+      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro: $e')),
+      );
     }
   }
 
-void openWhatsapp(
-      {required BuildContext context,
-      required String text,
-      required String number}) async {
-    var whatsapp = number; //+92xx enter like this
-    var whatsappURlAndroid =
-        "whatsapp://send?phone=$whatsapp&text=$text";
-    var whatsappURLIos = "https://wa.me/$whatsapp?text=${Uri.tryParse(text)}";
-    if (Platform.isIOS) {
-      // for iOS phone only
-      if (await canLaunchUrl(Uri.parse(whatsappURLIos))) {
-        await launchUrl(Uri.parse(
-          whatsappURLIos,
-        ));
+  void openWhatsapp({
+    required BuildContext context,
+    required String text,
+    required String number,
+  }) async {
+    final whatsappUrl =
+        "https://wa.me/$number?text=${Uri.encodeComponent(text)}";
+    try {
+      if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
+        await launchUrl(Uri.parse(whatsappUrl));
       } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Whatsapp not installed")));
+        throw 'WhatsApp não está disponível.';
       }
-    } else {
-      // android , web
-      if (await canLaunchUrl(Uri.parse(whatsappURlAndroid))) {
-        await launchUrl(Uri.parse(whatsappURlAndroid));
-      } else {
-        ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text("Whatsapp not installed")));
-      }
+    } catch (e) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Erro: $e')),
+      );
     }
   }
 
-  void _editResident(Morador morador) {
-    // Adicionar lógica de edição futura
-    debugPrint('Editando morador ${morador.nome}');
+  void _editResident(Morador morador) async {
+    final TextEditingController nomeController =
+        TextEditingController(text: morador.nome);
+    final TextEditingController cpfController =
+        TextEditingController(text: morador.cpf);
+    final TextEditingController telefoneController =
+        TextEditingController(text: morador.telefone);
+    final TextEditingController enderecoController =
+        TextEditingController(text: morador.endereco);
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Editar Morador'),
+          content: SingleChildScrollView(
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                TextField(
+                  controller: nomeController,
+                  decoration: const InputDecoration(labelText: 'Nome'),
+                ),
+                TextField(
+                  controller: cpfController,
+                  decoration: const InputDecoration(labelText: 'CPF'),
+                ),
+                TextField(
+                  controller: telefoneController,
+                  decoration: const InputDecoration(labelText: 'Telefone'),
+                ),
+                TextField(
+                  controller: enderecoController,
+                  decoration: const InputDecoration(labelText: 'Endereço'),
+                ),
+              ],
+            ),
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () async {
+                try {
+                  final atualizado = Morador(
+                    id: morador.id,
+                    nome: nomeController.text.trim(),
+                    cpf: cpfController.text.trim(),
+                    telefone: telefoneController.text.trim(),
+                    email: morador.email, // Não editável
+                    senha: morador.senha, // Não editável
+                    endereco: enderecoController.text.trim(),
+                    role: morador.role, // Mantém o mesmo papel
+                  );
+                  await _controller.atualizarMorador(atualizado);
+                  setState(() {}); // Atualiza a lista
+                  Navigator.pop(context); // Fecha o diálogo
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text('Morador atualizado com sucesso!')),
+                  );
+                } catch (e) {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(content: Text('Erro ao atualizar morador: $e')),
+                  );
+                }
+              },
+              child: const Text('Salvar'),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   void _deleteResident(Morador morador) async {
+    final TextEditingController confirmController = TextEditingController();
+
     final confirmation = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: const Text('Confirmar Exclusão'),
-        content: Text('Tem certeza que deseja excluir o morador ${morador.nome}?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: const Text('Cancelar'),
+      builder: (context) {
+        return AlertDialog(
+          title: const Text('Confirmar Exclusão'),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                  'Digite "excluir" para confirmar a exclusão do morador ${morador.nome}.'),
+              const SizedBox(height: 8),
+              TextField(
+                controller: confirmController,
+                decoration: const InputDecoration(
+                    hintText: 'Digite "excluir" para confirmar.'),
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: const Text('Excluir'),
-          ),
-        ],
-      ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: const Text('Cancelar'),
+            ),
+            ElevatedButton(
+              onPressed: () {
+                if (confirmController.text.trim().toLowerCase() == 'excluir') {
+                  Navigator.pop(context, true);
+                } else {
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(
+                        content: Text(
+                            'Você precisa digitar "excluir" para confirmar.')),
+                  );
+                }
+              },
+              child: const Text('Excluir'),
+            ),
+          ],
+        );
+      },
     );
 
     if (confirmation == true) {
@@ -303,8 +420,6 @@ void openWhatsapp(
       }
     }
   }
-}
 
-void _showAddress() {
-
+  void _showAddress() {}
 }

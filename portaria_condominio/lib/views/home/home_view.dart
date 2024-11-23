@@ -1,6 +1,9 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import '../../controllers/configuracoes_controller.dart';
+import '../../localizations/app_localizations.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -23,11 +26,12 @@ class HomeView extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Obtenha as configurações e as traduções
+    final configController = Provider.of<ConfiguracoesController>(context);
+    final localizations = AppLocalizations.of(context);
+
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Home'),
-      ),
-      drawer: Drawer(
+      body: SafeArea(
         child: Column(
           children: [
             DrawerHeader(
@@ -98,7 +102,13 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  Widget _menuItem(BuildContext context, String label, IconData icon, String route) {
+  Widget _menuItem(
+    BuildContext context,
+    String label,
+    IconData icon,
+    String route,
+    ConfiguracoesController configController,
+  ) {
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, route),
       child: Card(
@@ -106,9 +116,21 @@ class HomeView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 48),
+            Icon(
+              icon,
+              size: 48,
+              color:
+                  configController.iconColor ?? Theme.of(context).primaryColor,
+            ),
             const SizedBox(height: 8),
-            Text(label, textAlign: TextAlign.center),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: TextStyle(
+                color: configController.iconColor ??
+                    Theme.of(context).primaryColor,
+              ),
+            ),
           ],
         ),
       ),

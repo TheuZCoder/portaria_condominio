@@ -1,3 +1,4 @@
+import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Preferences {
@@ -5,6 +6,32 @@ class Preferences {
   static const _localeKey = 'locale';
   static const _emailKey = 'email';
   static const _rememberEmailKey = 'rememberEmail';
+  static const _primaryColorKey = 'primaryColor';
+  static const _iconColorKey = 'iconColor';
+
+  /// **Salvar Cor Primária**
+  static Future<void> savePrimaryColor(int color) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_primaryColorKey, color);
+  }
+
+  /// **Carregar Cor Primária**
+  static Future<int> loadPrimaryColor() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_primaryColorKey) ?? Colors.blue.value;
+  }
+
+  /// **Salvar Cor dos Ícones**
+  static Future<void> saveIconColor(int color) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setInt(_iconColorKey, color);
+  }
+
+  /// **Carregar Cor dos Ícones**
+  static Future<int> loadIconColor() async {
+    final prefs = await SharedPreferences.getInstance();
+    return prefs.getInt(_iconColorKey) ?? Colors.blue.value;
+  }
 
   /// **Salvar Tema**
   static Future<void> saveTheme(bool isDarkMode) async {

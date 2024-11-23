@@ -37,8 +37,8 @@ class ChatController {
   /// Gera um ID único para o chat com base nos dois usuários envolvidos
   String _generateChatId(String userId, String receiverId) {
     return userId.hashCode <= receiverId.hashCode
-        ? '$userId\_$receiverId'
-        : '$receiverId\_$userId';
+        ? '${userId}_$receiverId'
+        : '${receiverId}_$userId';
   }
 
   
