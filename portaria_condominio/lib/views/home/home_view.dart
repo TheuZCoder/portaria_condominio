@@ -1,7 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../../controllers/configuracoes_controller.dart';
-import '../../localizations/app_localizations.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -13,78 +10,114 @@ class HomeView extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        title: Text(localizations.translate('home_title')),
+        automaticallyImplyLeading: false, // Remove a seta para a esquerda
       ),
-      drawer: Drawer(
-        child: Column(
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: Theme.of(context).primaryColor,
-              ),
-              child: Center(
-                child: Text(
-                  localizations.translate('menu'),
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        color: Colors.white,
+      body: Column(
+        children: [
+          // Card com as informações do usuário e menu
+          Padding(
+            padding: const EdgeInsets.all(16), // Mesma margem do grid
+            child: Card(
+              elevation: 4, // Adiciona elevação ao card
+              child: Padding(
+                padding: const EdgeInsets.all(16), // Padding interno do card
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      radius: 30,
+                      backgroundImage: NetworkImage(
+                          'https://www.example.com/default-profile.png'),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            'João da Silva',
+                            style: const TextStyle(
+                                fontSize: 18,
+                                color: Colors.black,
+                                fontWeight: FontWeight.bold),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'Morador',
+                            style: const TextStyle(
+                              fontSize: 16,
+                              color: Colors.black,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            'CPF: 123.***.***-01',
+                            style: const TextStyle(
+                                fontSize: 14, color: Colors.black),
+                          ),
+                        ],
                       ),
+                    ),
+                    // Adiciona o menu como um PopupMenuButton
+                    PopupMenuButton(
+                      icon: const Icon(
+                        Icons.settings,
+                        color: Colors.grey,
+                      ),
+                      itemBuilder: (context) => [
+                        PopupMenuItem(
+                          child: const ListTile(
+                            leading: Icon(Icons.settings),
+                            title: Text('Configurações'),
+                          ),
+                          onTap: () {
+                            Navigator.pushNamed(context, '/configuracoes');
+                          },
+                        ),
+                        PopupMenuItem(
+                          child: const ListTile(
+                            leading: Icon(Icons.logout),
+                            title: Text('Logout'),
+                          ),
+                          onTap: () {
+                            Navigator.pushNamedAndRemoveUntil(
+                                context, '/login', (route) => false);
+                          },
+                        ),
+                      ],
+                    ),
+                  ],
                 ),
               ),
             ),
-            ListTile(
-              leading: Icon(Icons.settings, color: configController.iconColor),
-              title: Text(localizations.translate('settings')),
-              onTap: () {
-                Navigator.pop(context); // Fecha o Drawer
-                Navigator.pushNamed(context, '/configuracoes');
-              },
+          ),
+          // Grid de opções
+          Expanded(
+            child: GridView(
+              padding: const EdgeInsets.all(16),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                mainAxisSpacing: 16,
+                crossAxisSpacing: 16,
+              ),
+              children: [
+                _menuItem(context, 'Moradores', Icons.people, '/moradores'),
+                _menuItem(context, 'Prestadores', Icons.work, '/prestadores'),
+                _menuItem(context, 'Visitas', Icons.person_add, '/visitas'),
+                _menuItem(context, 'Pedidos', Icons.shopping_cart, '/pedidos'),
+                _menuItem(context, 'Notificações', Icons.notifications,
+                    '/notificacoes'),
+                _menuItem(context, 'Mapa', Icons.map, '/mapa'),
+                _menuItem(context, 'Chat', Icons.chat_bubble, '/chat'),
+              ],
             ),
-            ListTile(
-              leading: Icon(Icons.logout, color: configController.iconColor),
-              title: Text(localizations.translate('logout')),
-              onTap: () {
-                Navigator.pop(context); // Fecha o Drawer
-                Navigator.pushNamedAndRemoveUntil(
-                    context, '/login', (route) => false);
-              },
-            ),
-          ],
-        ),
-      ),
-      body: GridView(
-        padding: const EdgeInsets.all(16),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
-        ),
-        children: [
-          _menuItem(context, localizations.translate('residents'),
-              Icons.people, '/moradores', configController.iconColor),
-          _menuItem(context, localizations.translate('service_providers'),
-              Icons.work, '/prestadores', configController.iconColor),
-          _menuItem(context, localizations.translate('visits'),
-              Icons.person_add, '/visitas', configController.iconColor),
-          _menuItem(context, localizations.translate('orders'),
-              Icons.shopping_cart, '/pedidos', configController.iconColor),
-          _menuItem(context, localizations.translate('notifications'),
-              Icons.notifications, '/notificacoes', configController.iconColor),
-          _menuItem(context, localizations.translate('map'), Icons.map,
-              '/mapa', configController.iconColor),
-          _menuItem(context, localizations.translate('chat'),
-              Icons.chat_bubble, '/usersListView', configController.iconColor),
+          ),
         ],
       ),
     );
   }
 
-  Widget _menuItem(
-    BuildContext context,
-    String label,
-    IconData icon,
-    String route,
-    Color iconColor,
-  ) {
+  Widget _menuItem(BuildContext context, String label, IconData icon, String route) {
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, route),
       child: Card(
@@ -92,15 +125,9 @@ class HomeView extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 48, color: iconColor),
+            Icon(icon, size: 48),
             const SizedBox(height: 8),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: TextStyle(
-                color: Theme.of(context).textTheme.bodyLarge?.color,
-              ),
-            ),
+            Text(label, textAlign: TextAlign.center),
           ],
         ),
       ),
