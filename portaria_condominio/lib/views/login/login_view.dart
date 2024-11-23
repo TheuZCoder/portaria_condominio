@@ -80,7 +80,7 @@ class _LoginViewState extends State<LoginView> {
 
       if (role == 'morador') {
         Navigator.pushReplacementNamed(context, '/home');
-      } else if (role == 'admin') {
+      } else if (role == 'portaria') {
         Navigator.pushReplacementNamed(context, '/home');
       } else {
         ScaffoldMessenger.of(context).showSnackBar(

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import '../views/chat/chat_view.dart';
 import '../views/chat/user_list_view.dart';
+import '../views/home/cadastro_notificacoes.dart';
 import '../views/home/configuracoes_view.dart';
 import '../views/home/home_view.dart';
 import '../views/home/mapa_view.dart';
@@ -21,6 +22,7 @@ class AppRoutes {
   static const String visitas = '/visitas';
   static const String pedidos = '/pedidos';
   static const String notificacoes = '/notificacoes';
+  static const String cadastroNotificacoes = '/notificacoesAdmin';
   static const String mapa = '/mapa';
   static const String configuracoes = '/configuracoes';
   static const String usersListView = '/usersListView';
@@ -42,11 +44,14 @@ class AppRoutes {
       case pedidos:
         return MaterialPageRoute(builder: (_) => const PedidosView());
       case notificacoes:
-        return MaterialPageRoute(builder: (_) => const NotificacoesView());
+        return MaterialPageRoute(builder: (_) => const NotificationsView());
       case mapa:
         return MaterialPageRoute(builder: (_) => const MapaView());
       case configuracoes:
         return MaterialPageRoute(builder: (_) => const ConfiguracoesView());
+      case '/notificacoesAdmin':
+        return MaterialPageRoute(
+            builder: (_) => const NotificationCreationView());
       case usersListView:
         return MaterialPageRoute(builder: (_) => const UsersListView());
       case '/chat':

@@ -50,4 +50,25 @@ class AuthController {
       throw Exception('Erro ao fazer logout: $e');
     }
   }
+
+  Future<String?> get currentUserRole async {
+    final user = currentUser;
+    if (user == null) return null;
+
+    final uid = user.uid;
+
+    // Verifica se o usuário é morador
+    final moradorDoc = await _firestore.collection('moradores').doc(uid).get();
+    if (moradorDoc.exists) {
+      return moradorDoc.data()?['role'] ?? 'morador';
+    }
+
+    // Verifica se o usuário é da portaria
+    final portariaDoc = await _firestore.collection('portarias').doc(uid).get();
+    if (portariaDoc.exists) {
+      return portariaDoc.data()?['role'] ?? 'portaria';
+    }
+
+    return null; // Retorna null se o usuário não estiver registrado
+  }
 }

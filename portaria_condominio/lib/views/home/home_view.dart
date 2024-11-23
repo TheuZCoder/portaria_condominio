@@ -1,7 +1,25 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
+
+  Future<String> _getUserRole() async {
+    // Obtenha o ID do usuário autenticado
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) {
+      return 'unknown';
+    }
+
+    // Busque o papel do usuário no Firestore
+    final doc = await FirebaseFirestore.instance.collection('moradores').doc(user.uid).get();
+    if (doc.exists) {
+      return doc.data()?['role'] ?? 'unknown';
+    }
+
+    return 'unknown';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -21,7 +39,7 @@ class HomeView extends StatelessWidget {
                   'Menu',
                   style: Theme.of(context)
                       .textTheme
-                      .titleLarge // Substituímos headline6 por titleLarge
+                      .titleLarge
                       ?.copyWith(color: Colors.white),
                 ),
               ),
@@ -30,7 +48,7 @@ class HomeView extends StatelessWidget {
               leading: const Icon(Icons.settings),
               title: const Text('Configurações'),
               onTap: () {
-                Navigator.pop(context); // Fecha o Drawer
+                Navigator.pop(context);
                 Navigator.pushNamed(context, '/configuracoes');
               },
             ),
@@ -38,30 +56,44 @@ class HomeView extends StatelessWidget {
               leading: const Icon(Icons.logout),
               title: const Text('Logout'),
               onTap: () {
-                Navigator.pop(context); // Fecha o Drawer
-                Navigator.pushNamedAndRemoveUntil(
-                    context, '/login', (route) => false);
+                Navigator.pop(context);
+                Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
               },
             ),
           ],
         ),
       ),
-      body: GridView(
-        padding: const EdgeInsets.all(16),
-        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-          crossAxisCount: 2,
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
-        ),
-        children: [
-          _menuItem(context, 'Moradores', Icons.people, '/moradores'),
-          _menuItem(context, 'Prestadores', Icons.work, '/prestadores'),
-          _menuItem(context, 'Visitas', Icons.person_add, '/visitas'),
-          _menuItem(context, 'Pedidos', Icons.shopping_cart, '/pedidos'),
-          _menuItem(context, 'Notificações', Icons.notifications, '/notificacoes'),
-          _menuItem(context, 'Mapa', Icons.map, '/mapa'),
-          _menuItem(context, 'Chat', Icons.chat_bubble, '/usersListView')
-        ],
+      body: FutureBuilder<String>(
+        future: _getUserRole(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
+
+          final userRole = snapshot.data ?? 'unknown';
+
+          // Defina os itens do menu com base no papel do usuário
+          final menuItems = <Widget>[
+            if (userRole == 'portaria')
+              _menuItem(context, 'Moradores', Icons.people, '/moradores'),
+            _menuItem(context, 'Prestadores', Icons.work, '/prestadores'),
+            _menuItem(context, 'Visitas', Icons.person_add, '/visitas'),
+            _menuItem(context, 'Pedidos', Icons.shopping_cart, '/pedidos'),
+            _menuItem(context, 'Notificações', Icons.notifications, '/notificacoes'),
+            _menuItem(context, 'Mapa', Icons.map, '/mapa'),
+            _menuItem(context, 'Chat', Icons.chat_bubble, '/usersListView'),
+          ];
+
+          return GridView(
+            padding: const EdgeInsets.all(16),
+            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+              crossAxisCount: 2,
+              mainAxisSpacing: 16,
+              crossAxisSpacing: 16,
+            ),
+            children: menuItems,
+          );
+        },
       ),
     );
   }
