@@ -5,37 +5,34 @@ import 'package:provider/provider.dart';
 import '../../controllers/configuracoes_controller.dart';
 import '../../localizations/app_localizations.dart';
 
-
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
-
 
   /// Obtém o papel (role) do usuário autenticado
   Future<String> _getUserRole() async {
     final user = FirebaseAuth.instance.currentUser;
-
 
     // Verifica se o usuário está autenticado
     if (user == null) {
       return 'unknown';
     }
 
-
     // Busca o papel no Firestore
-    final doc = await FirebaseFirestore.instance.collection('moradores').doc(user.uid).get();
+    final doc = await FirebaseFirestore.instance
+        .collection('moradores')
+        .doc(user.uid)
+        .get();
     if (doc.exists) {
       return doc.data()?['role'] ?? 'unknown';
     }
     return 'unknown';
   }
 
-
   @override
   Widget build(BuildContext context) {
     // Obtém configurações e traduções
     final configController = Provider.of<ConfiguracoesController>(context);
     final localizations = AppLocalizations.of(context);
-
 
     return Scaffold(
       appBar: AppBar(
@@ -70,7 +67,8 @@ class HomeView extends StatelessWidget {
               title: Text(localizations.translate('logout')),
               onTap: () {
                 Navigator.pop(context);
-                Navigator.pushNamedAndRemoveUntil(context, '/login', (route) => false);
+                Navigator.pushNamedAndRemoveUntil(
+                    context, '/login', (route) => false);
               },
             ),
           ],
@@ -83,25 +81,29 @@ class HomeView extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
 
-
           final userRole = snapshot.data ?? 'unknown';
-
 
           // Definir itens de menu com base no papel do usuário
           final menuItems = <Widget>[
             if (userRole == 'portaria' || userRole == 'admin')
-              _menuItem(context, localizations.translate('residents'), Icons.people, '/moradores', configController),
+              _menuItem(context, localizations.translate('residents'),
+                  Icons.people, '/moradores', configController),
             if (userRole != 'visitor')
-              _menuItem(context, localizations.translate('providers'), Icons.work, '/prestadores', configController),
+              _menuItem(context, localizations.translate('providers'),
+                  Icons.work, '/prestadores', configController),
             if (userRole != 'visitor')
-              _menuItem(context, localizations.translate('visits'), Icons.person_add, '/visitas', configController),
-            _menuItem(context, localizations.translate('orders'), Icons.shopping_cart, '/pedidos', configController),
-            _menuItem(context, localizations.translate('notifications'), Icons.notifications, '/notificacoes', configController),
-            _menuItem(context, localizations.translate('map'), Icons.map, '/mapa', configController),
+              _menuItem(context, localizations.translate('visits'),
+                  Icons.person_add, '/visitas', configController),
+            _menuItem(context, localizations.translate('orders'),
+                Icons.shopping_cart, '/pedidos', configController),
+            _menuItem(context, localizations.translate('notifications'),
+                Icons.notifications, '/notificacoes', configController),
+            _menuItem(context, localizations.translate('map'), Icons.map,
+                '/mapa', configController),
             if (userRole != 'visitor')
-              _menuItem(context, localizations.translate('chat'), Icons.chat_bubble, '/usersListView', configController),
+              _menuItem(context, localizations.translate('chat'),
+                  Icons.chat_bubble, '/usersListView', configController),
           ];
-
 
           return GridView(
             padding: const EdgeInsets.all(16),
@@ -116,7 +118,6 @@ class HomeView extends StatelessWidget {
       ),
     );
   }
-
 
   Widget _menuItem(
     BuildContext context,
