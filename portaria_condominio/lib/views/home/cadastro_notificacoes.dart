@@ -36,6 +36,7 @@ class _NotificationCreationViewState extends State<NotificationCreationView> {
       title: title,
       description: description,
       timestamp: DateTime.now(),
+      status: 'unread',
     );
 
     try {
