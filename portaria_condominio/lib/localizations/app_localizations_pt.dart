@@ -97,10 +97,33 @@ class AppLocalizationsPt {
     'add': 'Adicionar',
     'confirm': 'Confirmar',
     
+    // Notificações
+    'send_notification': 'Enviar Notificação',
+    'new_notification': 'Nova Notificação',
+    'add_notification': 'Adicionar Notificação',
+    'notification_sent': 'Notificação enviada com sucesso!',
+    'notification_marked_as_read': 'Notificação marcada como lida',
+    'notification_marked_as_unread': 'Notificação marcada como não lida',
+    'no_notifications': 'Nenhuma notificação encontrada',
+    'title': 'Título',
+    'description': 'Descrição',
+    'fill_all_fields': 'Preencha todos os campos',
+    'error': 'Erro',
+    'mark_as_read': 'Marcar como lida',
+    'mark_as_unread': 'Marcar como não lida',
+    'delete_notification': 'Excluir notificação',
+    'delete_notification_confirmation': 'Tem certeza que deseja excluir esta notificação?',
+    'notification_deleted': 'Notificação excluída com sucesso',
+    'error_deleting_notification': 'Erro ao excluir notificação',
+    'error_updating_notification': 'Erro ao atualizar notificação',
+    'error_sending_notification': 'Erro ao enviar notificação',
+    'read': 'Lida',
+    'unread': 'Não lida',
+    'notification_status': 'Status da notificação',
+    
     // Outros
     'no_results_found': 'Nenhum resultado encontrado',
     'menu': 'Menu',
     'profile': 'Perfil',
-    'error': 'Erro',
   };
 }

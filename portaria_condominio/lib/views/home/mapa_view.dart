@@ -13,7 +13,12 @@ import '../../controllers/morador_controller.dart';
 import '../../models/morador_model.dart';
 
 class MapaView extends StatefulWidget {
-  const MapaView({super.key});
+  final String? initialAddress;
+
+  const MapaView({
+    super.key,
+    this.initialAddress,
+  });
 
   @override
   State<MapaView> createState() => _MapaViewState();
@@ -38,6 +43,16 @@ class _MapaViewState extends State<MapaView> {
     _locationService = loc.Location();
     _loadMoradores();
     _getUserLocation();
+    
+    if (widget.initialAddress != null) {
+      // Aguarda um momento para garantir que o mapa está pronto
+      Future.delayed(const Duration(milliseconds: 500), () {
+        if (mounted) {
+          _searchController.text = widget.initialAddress!;
+          _searchAddress(widget.initialAddress!);
+        }
+      });
+    }
   }
 
   Future<void> _loadMoradores() async {

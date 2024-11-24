@@ -97,10 +97,33 @@ class AppLocalizationsEn {
     'add': 'Add',
     'confirm': 'Confirm',
     
+    // Notifications
+    'send_notification': 'Send Notification',
+    'new_notification': 'New Notification',
+    'add_notification': 'Add Notification',
+    'notification_sent': 'Notification sent successfully!',
+    'notification_marked_as_read': 'Notification marked as read',
+    'notification_marked_as_unread': 'Notification marked as unread',
+    'no_notifications': 'No notifications found',
+    'title': 'Title',
+    'description': 'Description',
+    'fill_all_fields': 'Please fill all fields',
+    'error': 'Error',
+    'mark_as_read': 'Mark as read',
+    'mark_as_unread': 'Mark as unread',
+    'delete_notification': 'Delete notification',
+    'delete_notification_confirmation': 'Are you sure you want to delete this notification?',
+    'notification_deleted': 'Notification deleted successfully',
+    'error_deleting_notification': 'Error deleting notification',
+    'error_updating_notification': 'Error updating notification',
+    'error_sending_notification': 'Error sending notification',
+    'read': 'Read',
+    'unread': 'Unread',
+    'notification_status': 'Notification status',
+    
     // Others
     'no_results_found': 'No results found',
     'menu': 'Menu',
     'profile': 'Profile',
-    'error': 'Error',
   };
 }

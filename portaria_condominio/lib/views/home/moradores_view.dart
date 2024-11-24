@@ -14,7 +14,7 @@ class MoradoresView extends StatefulWidget {
   const MoradoresView({super.key});
 
   @override
-  _MoradoresViewState createState() => _MoradoresViewState();
+  State<MoradoresView> createState() => _MoradoresViewState();
 }
 
 class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateMixin {
@@ -22,6 +22,7 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
   int? expandedIndex;
   late Future<List<Morador>> _futureMoradores;
   final Map<int, AnimationController> _animationControllers = {};
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
 
   @override
   void initState() {
@@ -55,21 +56,17 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
     return Scaffold(
       appBar: AppBar(
         title: Text(localizations.translate('residents')),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.add),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const CadastroMoradoresView(),
-                ),
-              ).then((_) => setState(() {
-                    _futureMoradores = _controller.buscarTodosMoradores();
-                  }));
-            },
-          ),
-        ],
+      ),
+      floatingActionButton: FloatingActionButton.extended(
+        onPressed: () {
+          _mostrarDialogCadastro();
+        },
+        icon: const Icon(Icons.person_add),
+        label: Text(localizations.translate('add_resident')),
+        backgroundColor: colorScheme.secondary,
+        foregroundColor: colorScheme.onSecondary,
+        elevation: 2,
+        highlightElevation: 4,
       ),
       body: FutureBuilder<List<Morador>>(
         future: _futureMoradores,
@@ -154,13 +151,48 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
                                       children: [
                                         Text(
                                           morador.nome,
-                                          style: Theme.of(context).textTheme.titleMedium,
-                                        ),
-                                        Text(
-                                          morador.apartamento,
-                                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                            color: colorScheme.onSurfaceVariant,
+                                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                            fontWeight: FontWeight.bold,
                                           ),
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.location_on,
+                                              size: 16,
+                                              color: colorScheme.primary,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Expanded(
+                                              child: Text(
+                                                morador.endereco.isNotEmpty
+                                                    ? '${morador.endereco} - Número ${morador.numeroCasa}'
+                                                    : 'Endereço não informado',
+                                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                                  color: colorScheme.primary,
+                                                ),
+                                                overflow: TextOverflow.ellipsis,
+                                              ),
+                                            ),
+                                          ],
+                                        ),
+                                        const SizedBox(height: 4),
+                                        Row(
+                                          children: [
+                                            Icon(
+                                              Icons.phone,
+                                              size: 16,
+                                              color: colorScheme.onSurfaceVariant,
+                                            ),
+                                            const SizedBox(width: 4),
+                                            Text(
+                                              morador.telefone,
+                                              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                                color: colorScheme.onSurfaceVariant,
+                                              ),
+                                            ),
+                                          ],
                                         ),
                                       ],
                                     ),
@@ -202,12 +234,6 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
                                               _buildInfoRow(
                                                 localizations.translate('email'),
                                                 morador.email,
-                                                colorScheme,
-                                              ),
-                                              const SizedBox(height: 8),
-                                              _buildInfoRow(
-                                                localizations.translate('phone'),
-                                                morador.telefone,
                                                 colorScheme,
                                               ),
                                               const SizedBox(height: 16),
@@ -264,8 +290,10 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
   ) {
     return Column(
       children: [
-        Row(
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+        Wrap(
+          alignment: WrapAlignment.spaceEvenly,
+          spacing: 8.0,
+          runSpacing: 8.0,
           children: [
             _buildActionButton(
               icon: Icons.phone,
@@ -294,21 +322,11 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => const MapaView(),
+                    builder: (context) => MapaView(
+                      initialAddress: morador.endereco,
+                    ),
                   ),
-                ).then((_) {
-                  // Aguarda a construção do MapaView e então busca o endereço
-                  Future.delayed(const Duration(milliseconds: 500), () {
-                    if (context.mounted) {
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(
-                          content: Text('Buscando endereço do morador...'),
-                          duration: const Duration(seconds: 2),
-                        ),
-                      );
-                    }
-                  });
-                });
+                );
               },
               colorScheme: colorScheme,
             ),
@@ -327,7 +345,7 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
             _buildActionButton(
               icon: Icons.edit,
               label: localizations.translate('edit'),
-              onPressed: () => _editarMorador(morador),
+              onPressed: () => _mostrarDialogCadastro(morador),
               colorScheme: colorScheme,
             ),
             _buildActionButton(
@@ -350,22 +368,35 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
     required ColorScheme colorScheme,
     bool isDestructive = false,
   }) {
-    return TextButton.icon(
-      icon: Icon(
-        icon,
-        color: isDestructive ? colorScheme.error : colorScheme.primary,
-      ),
-      label: Text(
-        label,
-        style: TextStyle(
-          color: isDestructive ? colorScheme.error : colorScheme.primary,
+    return SizedBox(
+      width: 85,
+      child: TextButton(
+        onPressed: onPressed,
+        style: TextButton.styleFrom(
+          foregroundColor: isDestructive ? colorScheme.error : colorScheme.primary,
+          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
         ),
-      ),
-      onPressed: onPressed,
-      style: TextButton.styleFrom(
-        foregroundColor: isDestructive ? colorScheme.error : colorScheme.primary,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(8),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              icon,
+              color: isDestructive ? colorScheme.error : colorScheme.primary,
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 12,
+                color: isDestructive ? colorScheme.error : colorScheme.primary,
+              ),
+              textAlign: TextAlign.center,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ],
         ),
       ),
     );
@@ -397,38 +428,300 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
     }
   }
 
-  Future<void> _editarMorador(Morador morador) async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => CadastroMoradoresView(morador: morador),
-      ),
-    );
+  Future<void> _mostrarDialogCadastro([Morador? morador]) async {
+    final _nomeController = TextEditingController(text: morador?.nome ?? '');
+    final _cpfController = TextEditingController(text: morador?.cpf ?? '');
+    final _telefoneController = TextEditingController(text: morador?.telefone ?? '');
+    final _enderecoController = TextEditingController(text: morador?.endereco ?? '');
+    final _emailController = TextEditingController(text: morador?.email ?? '');
+    final _senhaController = TextEditingController();
+    final _numeroCasaController = TextEditingController(text: morador?.numeroCasa ?? '');
+    bool _isLoading = false;
+    final isEditing = morador != null;
 
-    if (result == true) {
-      setState(() {
-        _futureMoradores = _controller.buscarTodosMoradores();
-      });
-    }
+    await showGeneralDialog(
+      context: context,
+      barrierDismissible: false,
+      barrierLabel: 'Cadastro de Morador',
+      transitionDuration: const Duration(milliseconds: 300),
+      pageBuilder: (context, animation, secondaryAnimation) {
+        final slideAnimation = Tween<Offset>(
+          begin: const Offset(0, 1),
+          end: Offset.zero,
+        ).animate(
+          CurvedAnimation(
+            parent: animation,
+            curve: Curves.easeOutCubic,
+            reverseCurve: Curves.easeInCubic,
+          ),
+        );
+
+        return SlideTransition(
+          position: slideAnimation,
+          child: Dialog.fullscreen(
+            child: StatefulBuilder(
+              builder: (context, setState) {
+                return AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  curve: Curves.easeInOut,
+                  child: Scaffold(
+                    appBar: AppBar(
+                      title: Text(isEditing ? 'Editar Morador' : 'Novo Morador'),
+                      leading: IconButton(
+                        icon: const Icon(Icons.close),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                      actions: [
+                        FilledButton.icon(
+                          onPressed: _isLoading
+                              ? null
+                              : () async {
+                                  if (_formKey.currentState!.validate()) {
+                                    setState(() => _isLoading = true);
+                                    
+                                    final moradoresController =
+                                        Provider.of<MoradorController>(context, listen: false);
+
+                                    final novoDados = Morador(
+                                      id: morador?.id ?? '',
+                                      nome: _nomeController.text,
+                                      cpf: _cpfController.text,
+                                      telefone: _telefoneController.text,
+                                      email: _emailController.text,
+                                      senha: _senhaController.text.isEmpty
+                                          ? morador?.senha ?? ''
+                                          : _senhaController.text,
+                                      endereco: _enderecoController.text,
+                                      numeroCasa: _numeroCasaController.text,
+                                      role: morador?.role ?? 'morador',
+                                    );
+
+                                    try {
+                                      if (isEditing) {
+                                        await moradoresController.atualizarMorador(novoDados);
+                                      } else {
+                                        await moradoresController.cadastrarMorador(novoDados);
+                                      }
+                                      if (context.mounted) {
+                                        Navigator.of(context).pop();
+                                        setState(() {
+                                          _futureMoradores = _controller.buscarTodosMoradores();
+                                        });
+                                      }
+                                    } catch (e) {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text('Erro ao ${isEditing ? 'atualizar' : 'cadastrar'} morador: $e'),
+                                            backgroundColor: Theme.of(context).colorScheme.error,
+                                          ),
+                                        );
+                                      }
+                                    } finally {
+                                      if (mounted) {
+                                        setState(() => _isLoading = false);
+                                      }
+                                    }
+                                  }
+                                },
+                          icon: _isLoading
+                              ? Container(
+                                  width: 24,
+                                  height: 24,
+                                  padding: const EdgeInsets.all(2.0),
+                                  child: const CircularProgressIndicator(
+                                    strokeWidth: 3,
+                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                                  ),
+                                )
+                              : const Icon(Icons.save),
+                          label: Text(_isLoading ? 'Salvando...' : 'Salvar'),
+                        ),
+                        const SizedBox(width: 16),
+                      ],
+                    ),
+                    body: SingleChildScrollView(
+                      padding: const EdgeInsets.all(24.0),
+                      child: Form(
+                        key: _formKey,
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: [
+                            TextFormField(
+                              controller: _nomeController,
+                              decoration: const InputDecoration(
+                                labelText: 'Nome',
+                                prefixIcon: Icon(Icons.person),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Por favor, insira o nome';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: _cpfController,
+                              decoration: const InputDecoration(
+                                labelText: 'CPF',
+                                prefixIcon: Icon(Icons.badge),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Por favor, insira o CPF';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: _telefoneController,
+                              decoration: const InputDecoration(
+                                labelText: 'Telefone',
+                                prefixIcon: Icon(Icons.phone),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Por favor, insira o telefone';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: _enderecoController,
+                              decoration: const InputDecoration(
+                                labelText: 'Endereço',
+                                prefixIcon: Icon(Icons.location_on),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Por favor, insira o endereço';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: _numeroCasaController,
+                              decoration: const InputDecoration(
+                                labelText: 'Número da Casa',
+                                prefixIcon: Icon(Icons.home),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Por favor, insira o número da casa';
+                                }
+                                return null;
+                              },
+                            ),
+                            const SizedBox(height: 16),
+                            TextFormField(
+                              controller: _emailController,
+                              decoration: const InputDecoration(
+                                labelText: 'Email',
+                                prefixIcon: Icon(Icons.email),
+                              ),
+                              validator: (value) {
+                                if (value == null || value.isEmpty) {
+                                  return 'Por favor, insira o email';
+                                }
+                                if (!value.contains('@')) {
+                                  return 'Por favor, insira um email válido';
+                                }
+                                return null;
+                              },
+                            ),
+                            if (!isEditing) ...[
+                              const SizedBox(height: 16),
+                              TextFormField(
+                                controller: _senhaController,
+                                decoration: const InputDecoration(
+                                  labelText: 'Senha',
+                                  prefixIcon: Icon(Icons.lock),
+                                ),
+                                obscureText: true,
+                                validator: (value) {
+                                  if (!isEditing && (value == null || value.isEmpty)) {
+                                    return 'Por favor, insira a senha';
+                                  }
+                                  return null;
+                                },
+                              ),
+                            ],
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              },
+            ),
+          ),
+        );
+      },
+    );
   }
 
   Future<void> _confirmarExclusao(Morador morador) async {
     final localizations = AppLocalizations.of(context);
+    final confirmController = TextEditingController();
+    bool _isConfirmValid = false;
+
     final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) => AlertDialog(
-        title: Text(localizations.translate('confirm_delete')),
-        content: Text(localizations.translate('delete_resident_confirmation')),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context, false),
-            child: Text(localizations.translate('cancel')),
+      builder: (context) => StatefulBuilder(
+        builder: (context, setState) => AlertDialog(
+          title: Text(localizations.translate('confirm_delete')),
+          content: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(localizations.translate('delete_resident_confirmation')),
+              const SizedBox(height: 16),
+              Text(
+                'Digite "excluir" para confirmar:',
+                style: TextStyle(
+                  color: Theme.of(context).colorScheme.error,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: 8),
+              TextField(
+                controller: confirmController,
+                decoration: const InputDecoration(
+                  border: OutlineInputBorder(),
+                  hintText: 'excluir',
+                ),
+                onChanged: (value) {
+                  setState(() {
+                    _isConfirmValid = value.toLowerCase() == 'excluir';
+                  });
+                },
+              ),
+            ],
           ),
-          TextButton(
-            onPressed: () => Navigator.pop(context, true),
-            child: Text(localizations.translate('delete')),
-          ),
-        ],
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context, false),
+              child: Text(localizations.translate('cancel')),
+            ),
+            TextButton(
+              onPressed: _isConfirmValid 
+                ? () => Navigator.pop(context, true)
+                : null,
+              child: Text(
+                localizations.translate('delete'),
+                style: TextStyle(
+                  color: _isConfirmValid 
+                    ? Theme.of(context).colorScheme.error
+                    : Theme.of(context).colorScheme.onSurface.withOpacity(0.38),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
 
@@ -450,7 +743,7 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               content: Text('${localizations.translate('error_deleting_resident')}: $e'),
-              backgroundColor: Colors.red,
+              backgroundColor: Theme.of(context).colorScheme.error,
             ),
           );
         }

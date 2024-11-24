@@ -191,31 +191,52 @@ class AppTheme {
   }
 
   static ThemeData _createTheme(Color seedColor, Brightness brightness) {
+    // Create the base color scheme from seed color
     final colorScheme = ColorScheme.fromSeed(
       seedColor: seedColor,
       brightness: brightness,
     );
 
+    // Adjust surface colors with tonal elevation
+    final surfaceTint = colorScheme.primary.withOpacity(0.05);
+    final elevatedSurface = Color.alphaBlend(surfaceTint, colorScheme.surface);
+    
+    // Create adjusted color scheme with custom surface colors
+    final adjustedColorScheme = colorScheme.copyWith(
+      surface: colorScheme.surface,
+      surfaceVariant: colorScheme.surfaceVariant.withOpacity(0.9),
+      inverseSurface: colorScheme.inverseSurface,
+      surfaceTint: colorScheme.primary.withOpacity(0.05),
+      // Adjust primary container for better contrast
+      primaryContainer: colorScheme.primaryContainer.withOpacity(0.8),
+      // Enhance secondary colors
+      secondaryContainer: colorScheme.secondaryContainer.withOpacity(0.85),
+      // Adjust tertiary colors for better harmony
+      tertiaryContainer: colorScheme.tertiaryContainer.withOpacity(0.9),
+    );
+
     return ThemeData(
       useMaterial3: true,
-      colorScheme: colorScheme,
+      colorScheme: adjustedColorScheme,
       brightness: brightness,
       
-      // AppBar
+      // AppBar with surface tinting
       appBarTheme: AppBarTheme(
         centerTitle: true,
-        backgroundColor: colorScheme.surface,
+        backgroundColor: elevatedSurface,
         elevation: 0,
         scrolledUnderElevation: 2,
+        surfaceTintColor: adjustedColorScheme.surfaceTint,
       ),
 
-      // Cards
+      // Cards with surface tinting
       cardTheme: CardTheme(
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(16),
         ),
         clipBehavior: Clip.antiAlias,
+        surfaceTintColor: adjustedColorScheme.surfaceTint,
       ),
 
       // Elevated Button
@@ -262,7 +283,7 @@ class AppTheme {
       // Input Decoration
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: colorScheme.surfaceVariant.withOpacity(0.3),
+        fillColor: adjustedColorScheme.surfaceVariant.withOpacity(0.3),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,
@@ -270,26 +291,26 @@ class AppTheme {
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-            color: colorScheme.outline.withOpacity(0.3),
+            color: adjustedColorScheme.outline.withOpacity(0.3),
           ),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-            color: colorScheme.primary,
+            color: adjustedColorScheme.primary,
             width: 2,
           ),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-            color: colorScheme.error,
+            color: adjustedColorScheme.error,
           ),
         ),
         focusedErrorBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide(
-            color: colorScheme.error,
+            color: adjustedColorScheme.error,
             width: 2,
           ),
         ),
