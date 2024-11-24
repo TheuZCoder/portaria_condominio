@@ -204,7 +204,7 @@ class AppTheme {
     // Create adjusted color scheme with custom surface colors
     final adjustedColorScheme = colorScheme.copyWith(
       surface: colorScheme.surface,
-      surfaceVariant: colorScheme.surfaceVariant.withOpacity(0.9),
+      surfaceContainerHighest: colorScheme.surfaceContainerHighest.withOpacity(0.9),
       inverseSurface: colorScheme.inverseSurface,
       surfaceTint: colorScheme.primary.withOpacity(0.05),
       // Adjust primary container for better contrast
@@ -283,7 +283,7 @@ class AppTheme {
       // Input Decoration
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: adjustedColorScheme.surfaceVariant.withOpacity(0.3),
+        fillColor: adjustedColorScheme.surfaceContainerHighest.withOpacity(0.3),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(12),
           borderSide: BorderSide.none,

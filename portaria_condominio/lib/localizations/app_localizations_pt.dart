@@ -12,6 +12,19 @@ class AppLocalizationsPt {
     'forgot_password': 'Esqueceu a senha?',
     'login_error': 'Erro ao fazer login',
     'register_error': 'Erro ao fazer cadastro',
+    'welcome': 'Bem-vindo',
+    'login_to_continue': 'Faça login para continuar',
+    'login_button': 'Entrar',
+    'enable_biometric': 'Habilitar login com biometria',
+    'biometric_not_available': 'Biometria não disponível neste dispositivo',
+    'biometric_auth_reason': 'Autentique-se para acessar o aplicativo',
+    'credentials_not_found': 'Credenciais não encontradas. Faça login primeiro',
+    'biometric_auth_error': 'Erro na autenticação biométrica',
+    'login_first': 'Faça login primeiro antes de habilitar a biometria',
+    'fill_credentials': 'Preencha email e senha antes de habilitar a biometria',
+    'user_not_recognized': 'Usuário não reconhecido',
+    'enter_email': 'Por favor, insira seu email',
+    'enter_password': 'Por favor, insira sua senha',
     
     // Settings
     'settings': 'Configurações',
@@ -170,6 +183,15 @@ class AppLocalizationsPt {
     'error_updating_service_provider': 'Erro ao atualizar prestador',
     'company': 'Empresa',
     'company_required': 'Empresa é obrigatória',
+    
+    // Chat
+    'chats': 'Conversas',
+    'no_chats': 'Nenhuma conversa iniciada',
+    'start_new_chat': 'Iniciar nova conversa',
+    'chat_select_residents': 'Moradores',
+    'chat_select_providers': 'Prestadores',
+    'chat_no_residents': 'Nenhum morador encontrado',
+    'chat_no_providers': 'Nenhum prestador encontrado',
     
     // Others
     'no_results_found': 'Nenhum resultado encontrado',

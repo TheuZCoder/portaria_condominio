@@ -31,6 +31,23 @@ class MoradorController {
   }
 
   /// **READ** - Buscar um morador pelo ID (UID do Firebase Authentication)
+  Future<Morador?> buscarMoradorPorId(String id) async {
+    try {
+      DocumentSnapshot<Map<String, dynamic>> doc = await _moradoresCollection
+          .doc(id)
+          .get() as DocumentSnapshot<Map<String, dynamic>>;
+
+      if (doc.exists) {
+        return Morador.fromDocument(doc);
+      }
+      return null;
+    } catch (e) {
+      print('Erro ao buscar morador: $e');
+      return null;
+    }
+  }
+
+  /// **READ** - Buscar um morador pelo ID (UID do Firebase Authentication)
   Future<Morador?> buscarMorador(String id) async {
     try {
       DocumentSnapshot<Map<String, dynamic>> doc = await _moradoresCollection

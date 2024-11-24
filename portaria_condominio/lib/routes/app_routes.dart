@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 import '../views/chat/chat_view.dart';
 import '../views/chat/user_list_view.dart';
+import '../views/chat/chat_list_view.dart';
 import '../views/home/cadastro_notificacoes.dart';
 import '../views/home/home_view.dart';
 import '../views/home/mapa_view.dart';
@@ -28,6 +29,7 @@ class AppRoutes {
   static const String settings = '/settings';
   static const String usersListView = '/usersListView';
   static const String chat = '/chat';
+  static const String chatList = '/chatList';
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
     final name = settings.name;
@@ -51,6 +53,7 @@ class AppRoutes {
       settings: (_) => const SettingsView(),
       cadastroNotificacoes: (_) => const NotificationCreationView(),
       usersListView: (_) => const UsersListView(),
+      chatList: (_) => const ChatListView(),
     };
 
     final builder = routes[name];

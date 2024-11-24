@@ -101,18 +101,33 @@ class PrestadorController {
   }
 
   /// **READ** - Buscar um prestador pelo ID
-  Future<Prestador?> buscarPrestador(String id) async {
+  Future<Prestador?> buscarPrestadorPorId(String id) async {
     try {
-      DocumentSnapshot<Map<String, dynamic>> doc = await FirebaseFirestore
-          .instance
-          .collection('prestador')
+      DocumentSnapshot<Map<String, dynamic>> doc = await _prestadoresCollection
           .doc(id)
-          .get();
+          .get() as DocumentSnapshot<Map<String, dynamic>>;
 
       if (doc.exists) {
         return Prestador.fromDocument(doc);
       }
-      return null; // Retorna null se o documento não existir
+      return null;
+    } catch (e) {
+      print('Erro ao buscar prestador: $e');
+      return null;
+    }
+  }
+
+  /// **READ** - Buscar um prestador por critérios
+  Future<Prestador?> buscarPrestador(String id) async {
+    try {
+      DocumentSnapshot<Map<String, dynamic>> doc = await _prestadoresCollection
+          .doc(id)
+          .get() as DocumentSnapshot<Map<String, dynamic>>;
+
+      if (doc.exists) {
+        return Prestador.fromDocument(doc);
+      }
+      return null;
     } catch (e) {
       throw Exception('Erro ao buscar prestador: $e');
     }

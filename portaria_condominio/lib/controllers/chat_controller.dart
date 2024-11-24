@@ -1,4 +1,5 @@
 import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:flutter/foundation.dart';
 import '../models/message_model.dart';
 
 class ChatController {
@@ -179,6 +180,55 @@ class ChatController {
           .delete();
     } catch (e) {
       throw Exception('Erro ao deletar mensagem: $e');
+    }
+  }
+
+  /// Obtém a lista de chats ativos do usuário (apenas chats com mensagens)
+  Stream<List<String>> getActiveChats(String userId) {
+    return _firestore
+        .collection('chats')
+        .where('participants', arrayContains: userId)
+        .snapshots()
+        .asyncMap((snapshot) async {
+          final activeChats = <String>[];
+          for (var doc in snapshot.docs) {
+            final chatId = doc.id;
+            final messagesQuery = await _firestore
+                .collection('chats')
+                .doc(chatId)
+                .collection('messages')
+                .limit(1)
+                .get();
+            
+            if (messagesQuery.docs.isNotEmpty) {
+              final participants = List<String>.from(doc.data()['participants'] as List);
+              final otherUserId = participants.firstWhere((id) => id != userId);
+              activeChats.add(otherUserId);
+            }
+          }
+          return activeChats;
+        });
+  }
+
+  /// Obtém a última mensagem de um chat
+  Future<String?> getLastMessage(String userId, String otherUserId) async {
+    try {
+      final chatId = _generateChatId(userId, otherUserId);
+      final querySnapshot = await _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .orderBy('timestamp', descending: true)
+          .limit(1)
+          .get();
+
+      if (querySnapshot.docs.isNotEmpty) {
+        return querySnapshot.docs.first.data()['content'] as String?;
+      }
+      return null;
+    } catch (e) {
+      debugPrint('Erro ao buscar última mensagem: $e');
+      return null;
     }
   }
 

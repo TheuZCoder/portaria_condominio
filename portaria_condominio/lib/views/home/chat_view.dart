@@ -9,11 +9,11 @@ class ChatView extends StatefulWidget {
   final String receiverName;
 
   const ChatView({
-    Key? key,
+    super.key,
     required this.currentUserId,
     required this.receiverId,
     required this.receiverName,
-  }) : super(key: key);
+  });
 
   @override
   State<ChatView> createState() => _ChatViewState();

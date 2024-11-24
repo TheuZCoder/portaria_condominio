@@ -431,7 +431,7 @@ class _NotificationsViewState extends State<NotificationsView> with TickerProvid
                         elevation: elevationAnimation.value,
                         margin: const EdgeInsets.only(bottom: 12),
                         color: isUnread
-                            ? Theme.of(context).colorScheme.surfaceVariant
+                            ? Theme.of(context).colorScheme.surfaceContainerHighest
                             : Theme.of(context).colorScheme.surface,
                         child: InkWell(
                           onTap: () {

@@ -65,7 +65,7 @@ class _ChatInputFieldState extends State<ChatInputField> {
               decoration: InputDecoration(
                 hintText: 'Digite sua mensagem...',
                 filled: true,
-                fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+                fillColor: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.3),
                 border: OutlineInputBorder(
                   borderRadius: BorderRadius.circular(24),
                   borderSide: BorderSide.none,

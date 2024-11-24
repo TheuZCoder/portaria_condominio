@@ -238,7 +238,7 @@ class _LoginViewState extends State<LoginView> {
                       ),
                       const SizedBox(height: 48),
                       Text(
-                        'Bem-vindo',
+                        appLocalizations.translate('welcome'),
                         style: Theme.of(context).textTheme.headlineMedium?.copyWith(
                           color: colorScheme.primary,
                           fontWeight: FontWeight.bold,
@@ -247,7 +247,7 @@ class _LoginViewState extends State<LoginView> {
                       ),
                       const SizedBox(height: 8),
                       Text(
-                        'Faça login para continuar',
+                        appLocalizations.translate('login_to_continue'),
                         style: Theme.of(context).textTheme.bodyLarge?.copyWith(
                           color: colorScheme.onSurfaceVariant,
                         ),
@@ -258,7 +258,7 @@ class _LoginViewState extends State<LoginView> {
                         controller: _emailController,
                         keyboardType: TextInputType.emailAddress,
                         decoration: InputDecoration(
-                          labelText: appLocalizations.translate('username'),
+                          labelText: appLocalizations.translate('email'),
                           prefixIcon: const Icon(Icons.email_outlined),
                           border: const OutlineInputBorder(
                             borderRadius: BorderRadius.all(Radius.circular(12)),
@@ -266,7 +266,7 @@ class _LoginViewState extends State<LoginView> {
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Por favor, insira seu email';
+                            return appLocalizations.translate('enter_email');
                           }
                           return null;
                         },
@@ -294,7 +294,7 @@ class _LoginViewState extends State<LoginView> {
                         ),
                         validator: (value) {
                           if (value == null || value.isEmpty) {
-                            return 'Por favor, insira sua senha';
+                            return appLocalizations.translate('enter_password');
                           }
                           return null;
                         },
@@ -319,7 +319,7 @@ class _LoginViewState extends State<LoginView> {
                       if (_isBiometricAvailable) ...[
                         const SizedBox(height: 16),
                         SwitchListTile(
-                          title: const Text('Habilitar login com biometria'),
+                          title: Text(appLocalizations.translate('enable_biometric')),
                           value: _isBiometricEnabled,
                           onChanged: _toggleBiometric,
                           secondary: const Icon(Icons.fingerprint),

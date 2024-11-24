@@ -5,7 +5,6 @@ import '../../controllers/prestador_controller.dart';
 import '../../models/prestador_model.dart';
 import '../../localizations/app_localizations.dart';
 import '../chat/chat_view.dart';
-import 'mapa_view.dart';
 
 class PrestadoresView extends StatefulWidget {
   final String currentUserId;

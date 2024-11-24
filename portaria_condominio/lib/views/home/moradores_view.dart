@@ -427,14 +427,14 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
   }
 
   Future<void> _mostrarDialogCadastro([Morador? morador]) async {
-    final _nomeController = TextEditingController(text: morador?.nome ?? '');
-    final _cpfController = TextEditingController(text: morador?.cpf ?? '');
-    final _telefoneController = TextEditingController(text: morador?.telefone ?? '');
-    final _enderecoController = TextEditingController(text: morador?.endereco ?? '');
-    final _emailController = TextEditingController(text: morador?.email ?? '');
-    final _senhaController = TextEditingController();
-    final _numeroCasaController = TextEditingController(text: morador?.numeroCasa ?? '');
-    bool _isLoading = false;
+    final nomeController = TextEditingController(text: morador?.nome ?? '');
+    final cpfController = TextEditingController(text: morador?.cpf ?? '');
+    final telefoneController = TextEditingController(text: morador?.telefone ?? '');
+    final enderecoController = TextEditingController(text: morador?.endereco ?? '');
+    final emailController = TextEditingController(text: morador?.email ?? '');
+    final senhaController = TextEditingController();
+    final numeroCasaController = TextEditingController(text: morador?.numeroCasa ?? '');
+    bool isLoading = false;
     final isEditing = morador != null;
 
     await showGeneralDialog(
@@ -471,26 +471,26 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
                       ),
                       actions: [
                         FilledButton.icon(
-                          onPressed: _isLoading
+                          onPressed: isLoading
                               ? null
                               : () async {
                                   if (_formKey.currentState!.validate()) {
-                                    setState(() => _isLoading = true);
+                                    setState(() => isLoading = true);
                                     
                                     final moradoresController =
                                         Provider.of<MoradorController>(context, listen: false);
 
                                     final novoDados = Morador(
                                       id: morador?.id ?? '',
-                                      nome: _nomeController.text,
-                                      cpf: _cpfController.text,
-                                      telefone: _telefoneController.text,
-                                      email: _emailController.text,
-                                      senha: _senhaController.text.isEmpty
+                                      nome: nomeController.text,
+                                      cpf: cpfController.text,
+                                      telefone: telefoneController.text,
+                                      email: emailController.text,
+                                      senha: senhaController.text.isEmpty
                                           ? morador?.senha ?? ''
-                                          : _senhaController.text,
-                                      endereco: _enderecoController.text,
-                                      numeroCasa: _numeroCasaController.text,
+                                          : senhaController.text,
+                                      endereco: enderecoController.text,
+                                      numeroCasa: numeroCasaController.text,
                                       role: morador?.role ?? 'morador',
                                     );
 
@@ -517,12 +517,12 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
                                       }
                                     } finally {
                                       if (mounted) {
-                                        setState(() => _isLoading = false);
+                                        setState(() => isLoading = false);
                                       }
                                     }
                                   }
                                 },
-                          icon: _isLoading
+                          icon: isLoading
                               ? Container(
                                   width: 24,
                                   height: 24,
@@ -533,7 +533,7 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
                                   ),
                                 )
                               : const Icon(Icons.save),
-                          label: Text(_isLoading ? 'Salvando...' : 'Salvar'),
+                          label: Text(isLoading ? 'Salvando...' : 'Salvar'),
                         ),
                         const SizedBox(width: 16),
                       ],
@@ -546,7 +546,7 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
                             TextFormField(
-                              controller: _nomeController,
+                              controller: nomeController,
                               decoration: const InputDecoration(
                                 labelText: 'Nome',
                                 prefixIcon: Icon(Icons.person),
@@ -560,7 +560,7 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
                             ),
                             const SizedBox(height: 16),
                             TextFormField(
-                              controller: _cpfController,
+                              controller: cpfController,
                               decoration: const InputDecoration(
                                 labelText: 'CPF',
                                 prefixIcon: Icon(Icons.badge),
@@ -574,7 +574,7 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
                             ),
                             const SizedBox(height: 16),
                             TextFormField(
-                              controller: _telefoneController,
+                              controller: telefoneController,
                               decoration: const InputDecoration(
                                 labelText: 'Telefone',
                                 prefixIcon: Icon(Icons.phone),
@@ -588,7 +588,7 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
                             ),
                             const SizedBox(height: 16),
                             TextFormField(
-                              controller: _enderecoController,
+                              controller: enderecoController,
                               decoration: const InputDecoration(
                                 labelText: 'Endereço',
                                 prefixIcon: Icon(Icons.location_on),
@@ -602,7 +602,7 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
                             ),
                             const SizedBox(height: 16),
                             TextFormField(
-                              controller: _numeroCasaController,
+                              controller: numeroCasaController,
                               decoration: const InputDecoration(
                                 labelText: 'Número da Casa',
                                 prefixIcon: Icon(Icons.home),
@@ -616,7 +616,7 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
                             ),
                             const SizedBox(height: 16),
                             TextFormField(
-                              controller: _emailController,
+                              controller: emailController,
                               decoration: const InputDecoration(
                                 labelText: 'Email',
                                 prefixIcon: Icon(Icons.email),
@@ -634,7 +634,7 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
                             if (!isEditing) ...[
                               const SizedBox(height: 16),
                               TextFormField(
-                                controller: _senhaController,
+                                controller: senhaController,
                                 decoration: const InputDecoration(
                                   labelText: 'Senha',
                                   prefixIcon: Icon(Icons.lock),
@@ -665,7 +665,7 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
   Future<void> _confirmarExclusao(Morador morador) async {
     final localizations = AppLocalizations.of(context);
     final confirmController = TextEditingController();
-    bool _isConfirmValid = false;
+    bool isConfirmValid = false;
 
     final confirmed = await showDialog<bool>(
       context: context,
@@ -694,7 +694,7 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
                 ),
                 onChanged: (value) {
                   setState(() {
-                    _isConfirmValid = value.toLowerCase() == 'excluir';
+                    isConfirmValid = value.toLowerCase() == 'excluir';
                   });
                 },
               ),
@@ -706,13 +706,13 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
               child: Text(localizations.translate('cancel')),
             ),
             TextButton(
-              onPressed: _isConfirmValid 
+              onPressed: isConfirmValid 
                 ? () => Navigator.pop(context, true)
                 : null,
               child: Text(
                 localizations.translate('delete'),
                 style: TextStyle(
-                  color: _isConfirmValid 
+                  color: isConfirmValid 
                     ? Theme.of(context).colorScheme.error
                     : Theme.of(context).colorScheme.onSurface.withOpacity(0.38),
                 ),

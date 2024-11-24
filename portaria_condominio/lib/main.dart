@@ -7,6 +7,8 @@ import 'controllers/configuracoes_controller.dart';
 import 'localizations/app_localizations.dart';
 import 'routes/app_routes.dart';
 import 'theme_provider.dart';
+import 'views/splash/splash_screen.dart';
+import 'services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,6 +18,10 @@ void main() async {
 
   // Inicializa o SharedPreferences
   final prefs = await SharedPreferences.getInstance();
+
+  // Inicializa o serviço de notificações
+  final notificationService = NotificationService();
+  await notificationService.initialize();
 
   runApp(MyApp(prefs: prefs));
 }
@@ -46,7 +52,7 @@ class MyApp extends StatelessWidget {
               GlobalWidgetsLocalizations.delegate,
               GlobalCupertinoLocalizations.delegate,
             ],
-            initialRoute: AppRoutes.login,
+            home: const SplashScreen(),
             onGenerateRoute: AppRoutes.onGenerateRoute,
           );
         },

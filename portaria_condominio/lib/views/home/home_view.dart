@@ -98,6 +98,13 @@ class HomeView extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: Text(localizations.translate('home_title')),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.chat),
+            onPressed: () => Navigator.pushNamed(context, AppRoutes.chatList),
+            tooltip: localizations.translate('chats'),
+          ),
+        ],
       ),
       drawer: Drawer(
         child: Column(
@@ -232,9 +239,9 @@ class HomeView extends StatelessWidget {
                   ),
                   _menuItem(
                     context,
-                    localizations.translate('chat'),
+                    localizations.translate('chats'),
                     Icons.chat,
-                    '/usersListView',
+                    AppRoutes.chatList,
                     configController,
                   ),
                 ],

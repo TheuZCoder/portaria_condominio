@@ -62,7 +62,7 @@ class UsersListView extends StatelessWidget {
               return Card(
                 margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                 elevation: 0,
-                color: colorScheme.surfaceVariant.withOpacity(0.3),
+                color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
                 child: ListTile(
                   contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
                   leading: Hero(

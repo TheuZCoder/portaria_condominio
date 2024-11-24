@@ -169,6 +169,15 @@ class AppLocalizationsEn {
     'company': 'Company',
     'company_required': 'Company is required',
     
+    // Chat
+    'chats': 'Chats',
+    'no_chats': 'No active chats',
+    'start_new_chat': 'Start new chat',
+    'chat_select_residents': 'Residents',
+    'chat_select_providers': 'Service Providers',
+    'chat_no_residents': 'No residents found',
+    'chat_no_providers': 'No service providers found',
+    
     // Others
     'no_results_found': 'No results found',
     'menu': 'Menu',

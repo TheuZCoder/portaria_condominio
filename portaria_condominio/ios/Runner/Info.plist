@@ -8,6 +8,14 @@
 	<string>Precisamos de sua localização para mostrar o mapa</string>
 	<key>NSLocationAlwaysUsageDescription</key>
 	<string>Precisamos de sua localização para mostrar o mapa</string>
+	<key>NSFaceIDUsageDescription</key>
+	<string>Precisamos do Face ID/Touch ID para autenticar você de forma segura</string>
+	<key>NSCameraUsageDescription</key>
+	<string>Precisamos da câmera para escanear QR codes e tirar fotos</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>Precisamos acessar sua galeria para selecionar fotos</string>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>Precisamos do microfone para gravação de áudio</string>
 	<key>CFBundleDevelopmentRegion</key>
 	<string>$(DEVELOPMENT_LANGUAGE)</string>
 	<key>CFBundleDisplayName</key>
