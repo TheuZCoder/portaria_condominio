@@ -9,6 +9,21 @@ enum ThemePreset {
   tealDark,
   orangeLight,
   orangeDark,
+  purpleLight,
+  purpleDark,
+  greenLight,
+  greenDark,
+  blueLight,
+  blueDark,
+  redLight,
+  redDark,
+}
+
+enum ThemeCategory {
+  basic,
+  cool,
+  warm,
+  nature,
 }
 
 class AppTheme {
@@ -16,6 +31,10 @@ class AppTheme {
   static const _indigoSeedColor = Color(0xFF3F51B5); // Indigo
   static const _tealSeedColor = Color(0xFF009688); // Teal
   static const _orangeSeedColor = Color(0xFFFF5722); // Deep Orange
+  static const _purpleSeedColor = Color(0xFF9C27B0); // Purple
+  static const _greenSeedColor = Color(0xFF4CAF50); // Green
+  static const _blueSeedColor = Color(0xFF2196F3); // Blue
+  static const _redSeedColor = Color(0xFFF44336); // Red
 
   static ThemeData getThemeByPreset(ThemePreset preset) {
     switch (preset) {
@@ -35,6 +54,139 @@ class AppTheme {
         return _createTheme(_orangeSeedColor, Brightness.light);
       case ThemePreset.orangeDark:
         return _createTheme(_orangeSeedColor, Brightness.dark);
+      case ThemePreset.purpleLight:
+        return _createTheme(_purpleSeedColor, Brightness.light);
+      case ThemePreset.purpleDark:
+        return _createTheme(_purpleSeedColor, Brightness.dark);
+      case ThemePreset.greenLight:
+        return _createTheme(_greenSeedColor, Brightness.light);
+      case ThemePreset.greenDark:
+        return _createTheme(_greenSeedColor, Brightness.dark);
+      case ThemePreset.blueLight:
+        return _createTheme(_blueSeedColor, Brightness.light);
+      case ThemePreset.blueDark:
+        return _createTheme(_blueSeedColor, Brightness.dark);
+      case ThemePreset.redLight:
+        return _createTheme(_redSeedColor, Brightness.light);
+      case ThemePreset.redDark:
+        return _createTheme(_redSeedColor, Brightness.dark);
+    }
+  }
+
+  static ThemeCategory getThemeCategory(ThemePreset preset) {
+    switch (preset) {
+      case ThemePreset.defaultLight:
+      case ThemePreset.defaultDark:
+        return ThemeCategory.basic;
+      case ThemePreset.indigoLight:
+      case ThemePreset.indigoDark:
+      case ThemePreset.purpleLight:
+      case ThemePreset.purpleDark:
+      case ThemePreset.blueLight:
+      case ThemePreset.blueDark:
+        return ThemeCategory.cool;
+      case ThemePreset.orangeLight:
+      case ThemePreset.orangeDark:
+      case ThemePreset.redLight:
+      case ThemePreset.redDark:
+        return ThemeCategory.warm;
+      case ThemePreset.tealLight:
+      case ThemePreset.tealDark:
+      case ThemePreset.greenLight:
+      case ThemePreset.greenDark:
+        return ThemeCategory.nature;
+    }
+  }
+
+  static String getThemeCategoryName(ThemeCategory category) {
+    switch (category) {
+      case ThemeCategory.basic:
+        return 'Básico';
+      case ThemeCategory.cool:
+        return 'Tons Frios';
+      case ThemeCategory.warm:
+        return 'Tons Quentes';
+      case ThemeCategory.nature:
+        return 'Natureza';
+    }
+  }
+
+  static IconData getThemeCategoryIcon(ThemeCategory category) {
+    switch (category) {
+      case ThemeCategory.basic:
+        return Icons.palette_outlined;
+      case ThemeCategory.cool:
+        return Icons.ac_unit_outlined;
+      case ThemeCategory.warm:
+        return Icons.wb_sunny_outlined;
+      case ThemeCategory.nature:
+        return Icons.nature_outlined;
+    }
+  }
+
+  static String getThemeName(ThemePreset preset) {
+    switch (preset) {
+      case ThemePreset.defaultLight:
+        return 'Padrão Claro';
+      case ThemePreset.defaultDark:
+        return 'Padrão Escuro';
+      case ThemePreset.indigoLight:
+        return 'Índigo Claro';
+      case ThemePreset.indigoDark:
+        return 'Índigo Escuro';
+      case ThemePreset.tealLight:
+        return 'Teal Claro';
+      case ThemePreset.tealDark:
+        return 'Teal Escuro';
+      case ThemePreset.orangeLight:
+        return 'Laranja Claro';
+      case ThemePreset.orangeDark:
+        return 'Laranja Escuro';
+      case ThemePreset.purpleLight:
+        return 'Roxo Claro';
+      case ThemePreset.purpleDark:
+        return 'Roxo Escuro';
+      case ThemePreset.greenLight:
+        return 'Verde Claro';
+      case ThemePreset.greenDark:
+        return 'Verde Escuro';
+      case ThemePreset.blueLight:
+        return 'Azul Claro';
+      case ThemePreset.blueDark:
+        return 'Azul Escuro';
+      case ThemePreset.redLight:
+        return 'Vermelho Claro';
+      case ThemePreset.redDark:
+        return 'Vermelho Escuro';
+    }
+  }
+
+  static IconData getThemeIcon(ThemePreset preset) {
+    switch (preset) {
+      case ThemePreset.defaultLight:
+      case ThemePreset.defaultDark:
+        return Icons.palette_outlined;
+      case ThemePreset.indigoLight:
+      case ThemePreset.indigoDark:
+        return Icons.color_lens_outlined;
+      case ThemePreset.tealLight:
+      case ThemePreset.tealDark:
+        return Icons.brush_outlined;
+      case ThemePreset.orangeLight:
+      case ThemePreset.orangeDark:
+        return Icons.format_paint_outlined;
+      case ThemePreset.purpleLight:
+      case ThemePreset.purpleDark:
+        return Icons.colorize_outlined;
+      case ThemePreset.greenLight:
+      case ThemePreset.greenDark:
+        return Icons.eco_outlined;
+      case ThemePreset.blueLight:
+      case ThemePreset.blueDark:
+        return Icons.water_outlined;
+      case ThemePreset.redLight:
+      case ThemePreset.redDark:
+        return Icons.local_fire_department_outlined;
     }
   }
 
@@ -203,45 +355,5 @@ class AppTheme {
         ),
       ),
     );
-  }
-
-  // Nomes amigáveis para os temas
-  static String getThemeName(ThemePreset preset) {
-    switch (preset) {
-      case ThemePreset.defaultLight:
-        return 'Padrão Claro';
-      case ThemePreset.defaultDark:
-        return 'Padrão Escuro';
-      case ThemePreset.indigoLight:
-        return 'Índigo Claro';
-      case ThemePreset.indigoDark:
-        return 'Índigo Escuro';
-      case ThemePreset.tealLight:
-        return 'Teal Claro';
-      case ThemePreset.tealDark:
-        return 'Teal Escuro';
-      case ThemePreset.orangeLight:
-        return 'Laranja Claro';
-      case ThemePreset.orangeDark:
-        return 'Laranja Escuro';
-    }
-  }
-
-  // Ícones para os temas
-  static IconData getThemeIcon(ThemePreset preset) {
-    switch (preset) {
-      case ThemePreset.defaultLight:
-      case ThemePreset.defaultDark:
-        return Icons.palette_outlined;
-      case ThemePreset.indigoLight:
-      case ThemePreset.indigoDark:
-        return Icons.color_lens_outlined;
-      case ThemePreset.tealLight:
-      case ThemePreset.tealDark:
-        return Icons.brush_outlined;
-      case ThemePreset.orangeLight:
-      case ThemePreset.orangeDark:
-        return Icons.format_paint_outlined;
-    }
   }
 }

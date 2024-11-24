@@ -3,26 +3,33 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'themes/app_theme.dart';
 
 class ThemeProvider extends ChangeNotifier {
-  late SharedPreferences _prefs;
-  ThemePreset _currentPreset = ThemePreset.defaultLight;
+  static const String _themeKey = 'app_theme';
+  final SharedPreferences _prefs;
+  ThemePreset _currentPreset;
 
-  ThemeProvider() {
-    _loadThemePreset();
+  ThemeProvider(this._prefs) : _currentPreset = ThemePreset.defaultLight {
+    _loadTheme();
   }
 
   ThemePreset get currentPreset => _currentPreset;
   ThemeData get currentTheme => AppTheme.getThemeByPreset(_currentPreset);
 
-  Future<void> _loadThemePreset() async {
-    _prefs = await SharedPreferences.getInstance();
-    final themeIndex = _prefs.getInt('theme_preset') ?? 0;
-    _currentPreset = ThemePreset.values[themeIndex];
-    notifyListeners();
+  void _loadTheme() {
+    final savedTheme = _prefs.getString(_themeKey);
+    if (savedTheme != null) {
+      _currentPreset = ThemePreset.values.firstWhere(
+        (preset) => preset.toString() == savedTheme,
+        orElse: () => ThemePreset.defaultLight,
+      );
+      notifyListeners();
+    }
   }
 
   Future<void> setThemePreset(ThemePreset preset) async {
-    await _prefs.setInt('theme_preset', preset.index);
-    _currentPreset = preset;
-    notifyListeners();
+    if (_currentPreset != preset) {
+      await _prefs.setString(_themeKey, preset.toString());
+      _currentPreset = preset;
+      notifyListeners();
+    }
   }
 }

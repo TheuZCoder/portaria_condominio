@@ -8,7 +8,7 @@ class MoradorController {
       FirebaseFirestore.instance.collection('moradores');
 
   /// **CREATE** - Adicionar um novo morador no Firestore e Firebase Authentication
-  Future<void> criarMorador(Morador morador) async {
+  Future<void> cadastrarMorador(Morador morador) async {
     try {
       // Criar o usuário no Firebase Authentication
       UserCredential userCredential =
@@ -21,7 +21,10 @@ class MoradorController {
       String uid = userCredential.user!.uid;
 
       // Salvar os dados no Firestore
-      await _moradoresCollection.doc(uid).set(morador.toJson());
+      await _moradoresCollection.doc(uid).set({
+        ...morador.toJson(),
+        'id': uid,
+      });
     } catch (e) {
       throw Exception('Erro ao criar morador: $e');
     }
@@ -30,11 +33,9 @@ class MoradorController {
   /// **READ** - Buscar um morador pelo ID (UID do Firebase Authentication)
   Future<Morador?> buscarMorador(String id) async {
     try {
-      DocumentSnapshot<Map<String, dynamic>> doc = await FirebaseFirestore
-          .instance
-          .collection('moradores')
+      DocumentSnapshot<Map<String, dynamic>> doc = await _moradoresCollection
           .doc(id)
-          .get();
+          .get() as DocumentSnapshot<Map<String, dynamic>>;
 
       if (doc.exists) {
         return Morador.fromDocument(doc);
@@ -49,45 +50,39 @@ class MoradorController {
   Future<List<Morador>> buscarTodosMoradores() async {
     try {
       QuerySnapshot<Map<String, dynamic>> snapshot =
-          await FirebaseFirestore.instance.collection('moradores').get();
+          await _moradoresCollection.get() as QuerySnapshot<Map<String, dynamic>>;
 
-      return snapshot.docs.map((doc) => Morador.fromDocument(doc)).toList();
+      return snapshot.docs
+          .map((doc) => Morador.fromDocument(doc))
+          .toList();
     } catch (e) {
       throw Exception('Erro ao buscar moradores: $e');
     }
   }
 
-  /// **UPDATE** - Atualizar os dados de um morador no Firestore
+  /// **UPDATE** - Atualizar os dados de um morador
   Future<void> atualizarMorador(Morador morador) async {
     try {
-      // Atualizar no Firestore
       await _moradoresCollection.doc(morador.id).update(morador.toJson());
-
-      // Atualizar email no Firebase Authentication, se necessário
-      User? user = _auth.currentUser;
-      if (user != null && user.email != morador.email) {
-        await user.verifyBeforeUpdateEmail(morador.email);
-      }
-
-      // Atualizar senha no Firebase Authentication, se necessário
-      if (morador.senha.isNotEmpty) {
-        await user?.updatePassword(morador.senha);
-      }
     } catch (e) {
       throw Exception('Erro ao atualizar morador: $e');
     }
   }
 
-  /// **DELETE** - Excluir um morador do Firestore e Firebase Authentication
+  /// **DELETE** - Excluir um morador
   Future<void> excluirMorador(String id) async {
     try {
-      // Excluir o documento do Firestore
+      // Excluir do Firestore
       await _moradoresCollection.doc(id).delete();
 
-      // Excluir o usuário do Firebase Authentication
-      User? user = _auth.currentUser;
-      if (user != null && user.uid == id) {
-        await user.delete();
+      // Tentar excluir do Firebase Authentication se o usuário existir
+      try {
+        User? user = _auth.currentUser;
+        if (user != null && user.uid == id) {
+          await user.delete();
+        }
+      } catch (authError) {
+        print('Aviso: Não foi possível excluir o usuário do Authentication: $authError');
       }
     } catch (e) {
       throw Exception('Erro ao excluir morador: $e');

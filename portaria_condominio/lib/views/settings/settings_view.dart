@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import '../../controllers/configuracoes_controller.dart';
+import '../../localizations/app_localizations.dart';
 import '../../themes/app_theme.dart';
 import '../../theme_provider.dart';
 
@@ -11,43 +13,105 @@ class SettingsView extends StatelessWidget {
     debugPrint('SettingsView: Building...');
     final colorScheme = Theme.of(context).colorScheme;
     final themeProvider = Provider.of<ThemeProvider>(context);
+    final configController = Provider.of<ConfiguracoesController>(context);
+    final localizations = AppLocalizations.of(context);
+
+    // Organiza os temas por categoria
+    final themesByCategory = <ThemeCategory, List<ThemePreset>>{};
+    for (final category in ThemeCategory.values) {
+      themesByCategory[category] = ThemePreset.values
+          .where((preset) => AppTheme.getThemeCategory(preset) == category)
+          .toList();
+    }
+
+    // Lista de idiomas suportados
+    final supportedLanguages = [
+      {'code': 'pt', 'name': 'Português', 'nativeName': 'Português'},
+      {'code': 'en', 'name': 'English', 'nativeName': 'English'},
+      {'code': 'ar', 'name': 'Arabic', 'nativeName': 'العربية'},
+      {'code': 'zh', 'name': 'Chinese', 'nativeName': '中文'},
+    ];
 
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Configurações'),
+        title: Text(localizations.translate('settings')),
       ),
       body: ListView(
         children: [
-          const Padding(
-            padding: EdgeInsets.all(16),
+          // Seção de Idioma
+          ExpansionTile(
+            leading: const Icon(Icons.language),
+            title: Text(localizations.translate('language')),
+            children: [
+              for (final language in supportedLanguages)
+                RadioListTile<String>(
+                  title: Text(language['nativeName']!),
+                  subtitle: Text(language['name']!),
+                  value: language['code']!,
+                  groupValue: configController.locale.languageCode,
+                  onChanged: (value) {
+                    if (value != null) configController.changeLanguage(value);
+                  },
+                ),
+            ],
+          ),
+
+          const Divider(),
+
+          // Seção de Temas
+          Padding(
+            padding: const EdgeInsets.all(16),
             child: Text(
-              'Aparência',
-              style: TextStyle(
+              localizations.translate('appearance'),
+              style: const TextStyle(
                 fontSize: 14,
                 fontWeight: FontWeight.w500,
               ),
             ),
           ),
-          ...ThemePreset.values.map((preset) {
-            final isSelected = preset == themeProvider.currentPreset;
-            return ListTile(
+
+          // Lista de temas por categoria
+          for (final category in ThemeCategory.values) ...[
+            ExpansionTile(
               leading: Icon(
-                AppTheme.getThemeIcon(preset),
-                color: isSelected ? colorScheme.primary : null,
+                AppTheme.getThemeCategoryIcon(category),
+                color: colorScheme.primary,
               ),
-              title: Text(AppTheme.getThemeName(preset)),
-              trailing: isSelected
-                  ? Icon(
-                      Icons.check_circle,
-                      color: colorScheme.primary,
-                    )
-                  : null,
-              selected: isSelected,
-              onTap: () => themeProvider.setThemePreset(preset),
-            );
-          }).toList(),
+              title: Text(AppTheme.getThemeCategoryName(category)),
+              children: [
+                for (final preset in themesByCategory[category]!)
+                  ListTile(
+                    leading: Icon(
+                      AppTheme.getThemeIcon(preset),
+                      color: preset == themeProvider.currentPreset
+                          ? colorScheme.primary
+                          : null,
+                    ),
+                    title: Text(AppTheme.getThemeName(preset)),
+                    trailing: preset == themeProvider.currentPreset
+                        ? Icon(
+                            Icons.check_circle,
+                            color: colorScheme.primary,
+                          )
+                        : null,
+                    selected: preset == themeProvider.currentPreset,
+                    onTap: () => themeProvider.setThemePreset(preset),
+                  ),
+              ],
+            ),
+          ],
+
           const Divider(),
-          // Aqui você pode adicionar mais seções de configurações
+
+          // Botão para restaurar configurações padrão
+          ListTile(
+            leading: Icon(Icons.restore, color: colorScheme.primary),
+            title: Text(localizations.translate('restore_defaults')),
+            onTap: () {
+              configController.resetToDefaults();
+              themeProvider.setThemePreset(ThemePreset.defaultLight);
+            },
+          ),
         ],
       ),
     );

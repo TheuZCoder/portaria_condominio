@@ -1,5 +1,3 @@
-// ignore_for_file: use_build_context_synchronously
-
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:portaria_condominio/controllers/morador_controller.dart';
@@ -7,7 +5,9 @@ import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../controllers/configuracoes_controller.dart';
 import '../../models/morador_model.dart';
+import '../../localizations/app_localizations.dart';
 import 'cadastro_moradores_view.dart';
+import '../../views/chat/chat_view.dart';
 
 class MoradoresView extends StatefulWidget {
   const MoradoresView({super.key});
@@ -16,10 +16,11 @@ class MoradoresView extends StatefulWidget {
   _MoradoresViewState createState() => _MoradoresViewState();
 }
 
-class _MoradoresViewState extends State<MoradoresView> {
+class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateMixin {
   final MoradorController _controller = MoradorController();
   int? expandedIndex;
   late Future<List<Morador>> _futureMoradores;
+  final Map<int, AnimationController> _animationControllers = {};
 
   @override
   void initState() {
@@ -28,10 +29,31 @@ class _MoradoresViewState extends State<MoradoresView> {
   }
 
   @override
+  void dispose() {
+    for (var controller in _animationControllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  AnimationController _getAnimationController(int index) {
+    if (!_animationControllers.containsKey(index)) {
+      _animationControllers[index] = AnimationController(
+        duration: const Duration(milliseconds: 300),
+        vsync: this,
+      );
+    }
+    return _animationControllers[index]!;
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Moradores'),
+        title: Text(localizations.translate('residents')),
         actions: [
           IconButton(
             icon: const Icon(Icons.add),
@@ -54,20 +76,159 @@ class _MoradoresViewState extends State<MoradoresView> {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           }
+
           if (snapshot.hasError) {
             return Center(
-              child: Text('Erro: ${snapshot.error}'),
+              child: Text(
+                '${localizations.translate('error')}: ${snapshot.error}',
+                style: TextStyle(color: colorScheme.error),
+              ),
             );
           }
-          final moradores = snapshot.data ?? [];
-          if (moradores.isEmpty) {
-            return const Center(child: Text('Nenhum morador cadastrado.'));
+
+          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+            return Center(
+              child: Text(localizations.translate('no_residents_found')),
+            );
           }
+
           return ListView.builder(
-            itemCount: moradores.length,
+            itemCount: snapshot.data!.length,
             itemBuilder: (context, index) {
-              final morador = moradores[index];
-              return _buildMoradorCard(morador, index);
+              final morador = snapshot.data![index];
+              final isExpanded = index == expandedIndex;
+
+              return AnimatedBuilder(
+                animation: _getAnimationController(index),
+                builder: (context, child) {
+                  final controller = _getAnimationController(index);
+                  final elevationAnimation = Tween<double>(begin: 1, end: 8).animate(
+                    CurvedAnimation(
+                      parent: controller,
+                      curve: Curves.easeInOut,
+                    ),
+                  );
+                  final expansionAnimation = CurvedAnimation(
+                    parent: controller,
+                    curve: Curves.easeInOut,
+                  );
+
+                  if (isExpanded) {
+                    controller.forward();
+                  } else {
+                    controller.reverse();
+                  }
+
+                  return Card(
+                    margin: const EdgeInsets.all(8.0),
+                    elevation: elevationAnimation.value,
+                    child: Column(
+                      children: [
+                        Material(
+                          color: Colors.transparent,
+                          child: InkWell(
+                            onTap: () {
+                              setState(() {
+                                expandedIndex = isExpanded ? null : index;
+                              });
+                            },
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Row(
+                                children: [
+                                  Hero(
+                                    tag: 'avatar_${morador.id}',
+                                    child: CircleAvatar(
+                                      backgroundColor: colorScheme.primary,
+                                      child: Text(
+                                        morador.nome[0].toUpperCase(),
+                                        style: TextStyle(color: colorScheme.onPrimary),
+                                      ),
+                                    ),
+                                  ),
+                                  const SizedBox(width: 16),
+                                  Expanded(
+                                    child: Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          morador.nome,
+                                          style: Theme.of(context).textTheme.titleMedium,
+                                        ),
+                                        Text(
+                                          morador.apartamento,
+                                          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                                            color: colorScheme.onSurfaceVariant,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                  ),
+                                  RotationTransition(
+                                    turns: Tween(begin: 0.0, end: 0.5)
+                                        .animate(expansionAnimation),
+                                    child: Icon(
+                                      Icons.expand_more,
+                                      color: colorScheme.primary,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ),
+                        ClipRect(
+                          child: AnimatedSize(
+                            duration: const Duration(milliseconds: 300),
+                            curve: Curves.easeInOut,
+                            child: SizeTransition(
+                              sizeFactor: expansionAnimation,
+                              child: isExpanded
+                                  ? Column(
+                                      children: [
+                                        const Divider(),
+                                        Padding(
+                                          padding: const EdgeInsets.all(16.0),
+                                          child: Column(
+                                            crossAxisAlignment: CrossAxisAlignment.start,
+                                            children: [
+                                              _buildInfoRow(
+                                                localizations.translate('cpf'),
+                                                morador.cpf,
+                                                colorScheme,
+                                              ),
+                                              const SizedBox(height: 8),
+                                              _buildInfoRow(
+                                                localizations.translate('email'),
+                                                morador.email,
+                                                colorScheme,
+                                              ),
+                                              const SizedBox(height: 8),
+                                              _buildInfoRow(
+                                                localizations.translate('phone'),
+                                                morador.telefone,
+                                                colorScheme,
+                                              ),
+                                              const SizedBox(height: 16),
+                                              _buildActionButtons(
+                                                morador,
+                                                localizations,
+                                                colorScheme,
+                                              ),
+                                            ],
+                                          ),
+                                        ),
+                                      ],
+                                    )
+                                  : const SizedBox.shrink(),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                },
+              );
             },
           );
         },
@@ -75,82 +236,11 @@ class _MoradoresViewState extends State<MoradoresView> {
     );
   }
 
-  Widget _buildMoradorCard(Morador morador, int index) {
-    final bool isExpanded = expandedIndex == index;
-    final colorScheme = Theme.of(context).colorScheme;
-
-    return AnimatedSize(
-      duration: const Duration(milliseconds: 300),
-      curve: Curves.easeInOut,
-      child: Card(
-        margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-        child: Column(
-          children: [
-            ListTile(
-              leading: Icon(Icons.person, color: colorScheme.primary),
-              title: Text(
-                morador.nome,
-                style: TextStyle(
-                  color: colorScheme.onSurface,
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              subtitle: Text(
-                morador.email,
-                style: TextStyle(
-                  color: colorScheme.onSurfaceVariant,
-                ),
-              ),
-              onTap: () {
-                setState(() {
-                  expandedIndex = isExpanded ? null : index;
-                });
-              },
-              trailing: Icon(
-                isExpanded ? Icons.expand_less : Icons.expand_more,
-                color: colorScheme.primary,
-              ),
-            ),
-            AnimatedSwitcher(
-              duration: const Duration(milliseconds: 300),
-              transitionBuilder: (child, animation) {
-                return SizeTransition(sizeFactor: animation, child: child);
-              },
-              child: isExpanded ? _expandedDetails(morador) : const SizedBox(),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _expandedDetails(Morador morador) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Padding(
-      key: const ValueKey('expandedDetails'),
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          _infoRow(label: 'CPF:', value: morador.cpf),
-          const SizedBox(height: 8),
-          _infoRow(label: 'Telefone:', value: morador.telefone),
-          const SizedBox(height: 8),
-          _infoRow(label: 'Endereço:', value: morador.endereco),
-          const SizedBox(height: 8),
-          _expandedButtons(morador),
-        ],
-      ),
-    );
-  }
-
-  Widget _infoRow({required String label, required String value}) {
-    final colorScheme = Theme.of(context).colorScheme;
+  Widget _buildInfoRow(String label, String value, ColorScheme colorScheme) {
     return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          '$label ',
+          '$label: ',
           style: TextStyle(
             fontWeight: FontWeight.bold,
             color: colorScheme.primary,
@@ -159,365 +249,186 @@ class _MoradoresViewState extends State<MoradoresView> {
         Expanded(
           child: Text(
             value,
-            style: TextStyle(
-              color: colorScheme.onSurface,
-            ),
+            style: TextStyle(color: colorScheme.onSurface),
           ),
         ),
       ],
     );
   }
 
-  Widget _expandedButtons(Morador morador) {
-    final colorScheme = Theme.of(context).colorScheme;
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
-      child: SingleChildScrollView(
-        scrollDirection: Axis.horizontal,
-        child: Row(
+  Widget _buildActionButtons(
+    Morador morador,
+    AppLocalizations localizations,
+    ColorScheme colorScheme,
+  ) {
+    return Column(
+      children: [
+        Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _actionButton(
+            _buildActionButton(
               icon: Icons.phone,
-              label: 'Ligar',
-              onTap: () => _callProvider(morador.telefone),
-              color: colorScheme.primary,
+              label: localizations.translate('call'),
+              onPressed: () => _makePhoneCall(morador.telefone),
+              colorScheme: colorScheme,
             ),
-            _actionButton(
+            _buildActionButton(
               icon: Icons.message,
-              label: 'Mensagem',
-              onTap: () => _sendMessage(morador.telefone),
-              color: colorScheme.primary,
+              label: localizations.translate('message'),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => ChatView(
+                    receiverId: morador.id,
+                    receiverName: morador.nome,
+                  ),
+                ),
+              ),
+              colorScheme: colorScheme,
             ),
-            _actionButton(
+            _buildActionButton(
               icon: FontAwesomeIcons.whatsapp,
-              label: 'WhatsApp',
-              onTap: () => openWhatsapp(
-                  context: context,
-                  text: "Olá, ${morador.nome}!",
-                  number: morador.telefone),
-              color: colorScheme.primary,
-            ),
-            _actionButton(
-              icon: Icons.edit,
-              label: 'Editar',
-              onTap: () => _editResident(morador),
-              color: colorScheme.primary,
-            ),
-            _actionButton(
-              icon: Icons.delete,
-              label: 'Excluir',
-              onTap: () => _deleteResident(morador),
-              color: colorScheme.primary,
+              label: localizations.translate('whatsapp'),
+              onPressed: () => _openWhatsApp(morador.telefone),
+              colorScheme: colorScheme,
             ),
           ],
+        ),
+        const SizedBox(height: 16),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+          children: [
+            _buildActionButton(
+              icon: Icons.edit,
+              label: localizations.translate('edit'),
+              onPressed: () => _editarMorador(morador),
+              colorScheme: colorScheme,
+            ),
+            _buildActionButton(
+              icon: Icons.delete,
+              label: localizations.translate('delete'),
+              onPressed: () => _confirmarExclusao(morador),
+              colorScheme: colorScheme,
+              isDestructive: true,
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildActionButton({
+    required IconData icon,
+    required String label,
+    required VoidCallback onPressed,
+    required ColorScheme colorScheme,
+    bool isDestructive = false,
+  }) {
+    return TextButton.icon(
+      icon: Icon(
+        icon,
+        color: isDestructive ? colorScheme.error : colorScheme.primary,
+      ),
+      label: Text(
+        label,
+        style: TextStyle(
+          color: isDestructive ? colorScheme.error : colorScheme.primary,
+        ),
+      ),
+      onPressed: onPressed,
+      style: TextButton.styleFrom(
+        foregroundColor: isDestructive ? colorScheme.error : colorScheme.primary,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(8),
         ),
       ),
     );
   }
 
-  Widget _actionButton({
-    required IconData icon,
-    required String label,
-    required VoidCallback onTap,
-    required Color color,
-  }) {
-    final colorScheme = Theme.of(context).colorScheme;
+  Future<void> _makePhoneCall(String phoneNumber) async {
+    final Uri uri = Uri.parse('tel:$phoneNumber');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
+  }
 
-    return Column(
-      children: [
-        InkWell(
-          onTap: onTap,
-          borderRadius: BorderRadius.circular(40),
-          child: Container(
-            width: 60,
-            height: 60,
-            margin: const EdgeInsets.symmetric(horizontal: 8.0),
-            decoration: BoxDecoration(
-              color: color,
-              shape: BoxShape.circle,
-            ),
-            child: Icon(icon, color: colorScheme.onPrimary, size: 30),
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            color: colorScheme.onSurface,
-          ),
-          textAlign: TextAlign.center,
-        ),
-      ],
+  Future<void> _sendSMS(String phoneNumber) async {
+    final Uri uri = Uri.parse('sms:$phoneNumber');
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
+  }
+
+  Future<void> _openWhatsApp(String phoneNumber) async {
+    String formattedNumber = phoneNumber.replaceAll(RegExp(r'[^\d]'), '');
+    if (!formattedNumber.startsWith('55')) {
+      formattedNumber = '55$formattedNumber';
+    }
+    final url = 'https://wa.me/$formattedNumber';
+    final Uri uri = Uri.parse(url);
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri);
+    }
+  }
+
+  Future<void> _editarMorador(Morador morador) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => CadastroMoradoresView(morador: morador),
+      ),
     );
-  }
 
-  // Métodos associados aos botões
-  void _callProvider(String phone) async {
-    final Uri phoneUrl = Uri(scheme: 'tel', path: phone);
-    try {
-      if (await canLaunchUrl(phoneUrl)) {
-        await launchUrl(phoneUrl);
-      } else {
-        throw 'Não foi possível realizar a ligação';
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro: $e')),
-      );
+    if (result == true) {
+      setState(() {
+        _futureMoradores = _controller.buscarTodosMoradores();
+      });
     }
   }
 
-  void _sendMessage(String phoneNumber) async {
-    final Uri smsUri = Uri(scheme: 'sms', path: phoneNumber);
-    try {
-      if (await canLaunchUrl(smsUri)) {
-        await launchUrl(smsUri);
-      } else {
-        throw 'Não foi possível enviar a mensagem.';
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro: $e')),
-      );
-    }
-  }
-
-  void openWhatsapp({
-    required BuildContext context,
-    required String text,
-    required String number,
-  }) async {
-    final whatsappUrl =
-        "https://wa.me/$number?text=${Uri.encodeComponent(text)}";
-    try {
-      if (await canLaunchUrl(Uri.parse(whatsappUrl))) {
-        await launchUrl(Uri.parse(whatsappUrl));
-      } else {
-        throw 'WhatsApp não está disponível.';
-      }
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Erro: $e')),
-      );
-    }
-  }
-
-  void _editResident(Morador morador) async {
-    final TextEditingController nomeController =
-        TextEditingController(text: morador.nome);
-    final TextEditingController cpfController =
-        TextEditingController(text: morador.cpf);
-    final TextEditingController telefoneController =
-        TextEditingController(text: morador.telefone);
-    final TextEditingController enderecoController =
-        TextEditingController(text: morador.endereco);
-
-    final colorScheme = Theme.of(context).colorScheme;
-
-    await showDialog(
+  Future<void> _confirmarExclusao(Morador morador) async {
+    final localizations = AppLocalizations.of(context);
+    final confirmed = await showDialog<bool>(
       context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(
-            'Editar Morador',
-            style: TextStyle(
-              color: colorScheme.onSurface,
-              fontWeight: FontWeight.bold,
-            ),
+      builder: (context) => AlertDialog(
+        title: Text(localizations.translate('confirm_delete')),
+        content: Text(localizations.translate('delete_resident_confirmation')),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(localizations.translate('cancel')),
           ),
-          content: SingleChildScrollView(
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                TextField(
-                  controller: nomeController,
-                  decoration: InputDecoration(
-                    labelText: 'Nome',
-                    labelStyle: TextStyle(color: colorScheme.primary),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: colorScheme.primary),
-                    ),
-                  ),
-                ),
-                TextField(
-                  controller: cpfController,
-                  decoration: InputDecoration(
-                    labelText: 'CPF',
-                    labelStyle: TextStyle(color: colorScheme.primary),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: colorScheme.primary),
-                    ),
-                  ),
-                ),
-                TextField(
-                  controller: telefoneController,
-                  decoration: InputDecoration(
-                    labelText: 'Telefone',
-                    labelStyle: TextStyle(color: colorScheme.primary),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: colorScheme.primary),
-                    ),
-                  ),
-                ),
-                TextField(
-                  controller: enderecoController,
-                  decoration: InputDecoration(
-                    labelText: 'Endereço',
-                    labelStyle: TextStyle(color: colorScheme.primary),
-                    focusedBorder: UnderlineInputBorder(
-                      borderSide: BorderSide(color: colorScheme.primary),
-                    ),
-                  ),
-                ),
-              ],
-            ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: Text(localizations.translate('delete')),
           ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context),
-              child: Text(
-                'Cancelar',
-                style: TextStyle(color: colorScheme.primary),
-              ),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: colorScheme.primary,
-                foregroundColor: colorScheme.onPrimary,
-              ),
-              onPressed: () async {
-                try {
-                  final atualizado = Morador(
-                    id: morador.id,
-                    nome: nomeController.text.trim(),
-                    cpf: cpfController.text.trim(),
-                    telefone: telefoneController.text.trim(),
-                    email: morador.email,
-                    senha: morador.senha,
-                    endereco: enderecoController.text.trim(),
-                    role: morador.role,
-                  );
-                  await _controller.atualizarMorador(atualizado);
-                  setState(() {
-                    _futureMoradores = _controller.buscarTodosMoradores();
-                  });
-                  Navigator.pop(context);
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text('Morador atualizado com sucesso!'),
-                      backgroundColor: colorScheme.primary,
-                    ),
-                  );
-                } catch (e) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('Erro ao atualizar morador: $e'),
-                      backgroundColor: colorScheme.error,
-                    ),
-                  );
-                }
-              },
-              child: const Text('Salvar'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-
-  void _deleteResident(Morador morador) async {
-    final TextEditingController confirmController = TextEditingController();
-    final colorScheme = Theme.of(context).colorScheme;
-
-    final confirmation = await showDialog<bool>(
-      context: context,
-      builder: (context) {
-        return AlertDialog(
-          title: Text(
-            'Confirmar Exclusão',
-            style: TextStyle(
-              color: colorScheme.error,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'Digite "excluir" para confirmar a exclusão do morador ${morador.nome}.',
-                style: TextStyle(color: colorScheme.onSurface),
-              ),
-              const SizedBox(height: 8),
-              TextField(
-                controller: confirmController,
-                decoration: InputDecoration(
-                  hintText: 'Digite "excluir" para confirmar.',
-                  hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
-                  focusedBorder: UnderlineInputBorder(
-                    borderSide: BorderSide(color: colorScheme.error),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(context, false),
-              child: Text(
-                'Cancelar',
-                style: TextStyle(color: colorScheme.primary),
-              ),
-            ),
-            ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                backgroundColor: colorScheme.error,
-                foregroundColor: colorScheme.onError,
-              ),
-              onPressed: () {
-                if (confirmController.text.trim().toLowerCase() == 'excluir') {
-                  Navigator.pop(context, true);
-                } else {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: const Text(
-                        'Você precisa digitar "excluir" para confirmar.',
-                      ),
-                      backgroundColor: colorScheme.error,
-                    ),
-                  );
-                }
-              },
-              child: const Text('Excluir'),
-            ),
-          ],
-        );
-      },
+        ],
+      ),
     );
 
-    if (confirmation == true) {
+    if (confirmed == true) {
       try {
         await _controller.excluirMorador(morador.id);
         setState(() {
           _futureMoradores = _controller.buscarTodosMoradores();
         });
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: const Text('Morador excluído com sucesso!'),
-            backgroundColor: colorScheme.primary,
-          ),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(localizations.translate('resident_deleted')),
+            ),
+          );
+        }
       } catch (e) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Erro ao excluir morador: $e'),
-            backgroundColor: colorScheme.error,
-          ),
-        );
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('${localizations.translate('error_deleting_resident')}: $e'),
+              backgroundColor: Colors.red,
+            ),
+          );
+        }
       }
     }
   }
-
-  void _showAddress() {}
 }

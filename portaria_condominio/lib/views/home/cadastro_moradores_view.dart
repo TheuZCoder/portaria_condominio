@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:portaria_condominio/controllers/morador_controller.dart';
-
 import '../../models/morador_model.dart';
+import '../../localizations/app_localizations.dart';
 
 class CadastroMoradoresView extends StatefulWidget {
-  const CadastroMoradoresView({super.key});
+  final Morador? morador;
+  
+  const CadastroMoradoresView({super.key, this.morador});
 
   @override
   State<CadastroMoradoresView> createState() => _CadastroMoradoresViewState();
@@ -20,14 +22,45 @@ class _CadastroMoradoresViewState extends State<CadastroMoradoresView> {
   final TextEditingController _enderecoController = TextEditingController();
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _senhaController = TextEditingController();
+  final TextEditingController _apartamentoController = TextEditingController();
 
   bool _isLoading = false;
 
   @override
+  void initState() {
+    super.initState();
+    if (widget.morador != null) {
+      _nomeController.text = widget.morador!.nome;
+      _cpfController.text = widget.morador!.cpf;
+      _telefoneController.text = widget.morador!.telefone;
+      _enderecoController.text = widget.morador!.endereco;
+      _emailController.text = widget.morador!.email;
+      _apartamentoController.text = widget.morador!.apartamento;
+    }
+  }
+
+  @override
+  void dispose() {
+    _nomeController.dispose();
+    _cpfController.dispose();
+    _telefoneController.dispose();
+    _enderecoController.dispose();
+    _emailController.dispose();
+    _senhaController.dispose();
+    _apartamentoController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    final isEditing = widget.morador != null;
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Cadastrar Morador'),
+        title: Text(isEditing 
+          ? localizations.translate('edit_resident')
+          : localizations.translate('add_resident')),
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -37,47 +70,64 @@ class _CadastroMoradoresViewState extends State<CadastroMoradoresView> {
             children: [
               _buildTextField(
                 controller: _nomeController,
-                label: 'Nome',
-                validator: (value) => value!.isEmpty ? 'Informe o nome' : null,
+                label: localizations.translate('name'),
+                validator: (value) => value!.isEmpty 
+                  ? localizations.translate('name_required') 
+                  : null,
               ),
               _buildTextField(
                 controller: _cpfController,
-                label: 'CPF',
-                validator: (value) => value!.isEmpty ? 'Informe o CPF' : null,
+                label: localizations.translate('cpf'),
+                validator: (value) => value!.isEmpty 
+                  ? localizations.translate('cpf_required') 
+                  : null,
               ),
               _buildTextField(
                 controller: _telefoneController,
-                label: 'Telefone',
-                validator: (value) =>
-                    value!.isEmpty ? 'Informe o telefone' : null,
+                label: localizations.translate('phone'),
+                validator: (value) => value!.isEmpty 
+                  ? localizations.translate('phone_required') 
+                  : null,
               ),
               _buildTextField(
                 controller: _enderecoController,
-                label: 'Endereço',
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) => value!.isEmpty ? 'Informe o endereço' : null,
-                ),
+                label: localizations.translate('address'),
+                validator: (value) => value!.isEmpty 
+                  ? localizations.translate('address_required') 
+                  : null,
+              ),
               _buildTextField(
                 controller: _emailController,
-                label: 'Email',
-                keyboardType: TextInputType.emailAddress,
-                validator: (value) => value!.isEmpty ? 'Informe o email' : null,
+                label: localizations.translate('email'),
+                validator: (value) => value!.isEmpty 
+                  ? localizations.translate('email_required') 
+                  : null,
               ),
               _buildTextField(
-                controller: _senhaController,
-                label: 'Senha',
-                obscureText: true,
-                validator: (value) => value!.length < 6
-                    ? 'A senha deve ter pelo menos 6 caracteres'
-                    : null,
+                controller: _apartamentoController,
+                label: localizations.translate('apartment'),
+                validator: (value) => value!.isEmpty 
+                  ? localizations.translate('apartment_required') 
+                  : null,
               ),
+              if (!isEditing)
+                _buildTextField(
+                  controller: _senhaController,
+                  label: localizations.translate('password'),
+                  obscureText: true,
+                  validator: (value) => value!.isEmpty 
+                    ? localizations.translate('password_required') 
+                    : null,
+                ),
               const SizedBox(height: 20),
-              _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ElevatedButton(
-                      onPressed: _submit,
-                      child: const Text('Cadastrar'),
-                    ),
+              ElevatedButton(
+                onPressed: _isLoading ? null : _submitForm,
+                child: _isLoading
+                    ? const CircularProgressIndicator()
+                    : Text(isEditing 
+                        ? localizations.translate('save_changes')
+                        : localizations.translate('register')),
+              ),
             ],
           ),
         ),
@@ -88,68 +138,72 @@ class _CadastroMoradoresViewState extends State<CadastroMoradoresView> {
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
-    TextInputType keyboardType = TextInputType.text,
+    required String? Function(String?) validator,
     bool obscureText = false,
-    String? Function(String?)? validator,
   }) {
     return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 8.0),
+      padding: const EdgeInsets.only(bottom: 16.0),
       child: TextFormField(
         controller: controller,
         decoration: InputDecoration(
           labelText: label,
           border: const OutlineInputBorder(),
         ),
-        keyboardType: keyboardType,
         obscureText: obscureText,
         validator: validator,
       ),
     );
   }
 
-  Future<void> _submit() async {
-    if (_formKey.currentState!.validate()) {
-      setState(() {
-        _isLoading = true;
-      });
+  Future<void> _submitForm() async {
+    if (!_formKey.currentState!.validate()) return;
 
-      try {
-        final novoMorador = Morador(
-          id: '', // Será gerado automaticamente pelo Firestore
-          nome: _nomeController.text.trim(),
-          cpf: _cpfController.text.trim(),
-          telefone: _telefoneController.text.trim(),
-          endereco: _enderecoController.text.trim(),
-          email: _emailController.text.trim(),
-          senha: _senhaController.text.trim(),
-        );
+    setState(() => _isLoading = true);
 
-        await _controller.criarMorador(novoMorador);
+    try {
+      final morador = Morador(
+        id: widget.morador?.id ?? '',
+        nome: _nomeController.text,
+        cpf: _cpfController.text,
+        telefone: _telefoneController.text,
+        endereco: _enderecoController.text,
+        email: _emailController.text,
+        senha: widget.morador?.senha ?? _senhaController.text,
+        apartamento: _apartamentoController.text,
+        role: widget.morador?.role ?? 'morador',
+      );
 
+      if (widget.morador != null) {
+        await _controller.atualizarMorador(morador);
+      } else {
+        await _controller.cadastrarMorador(morador);
+      }
+
+      if (mounted) {
+        Navigator.pop(context, true);
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Morador cadastrado com sucesso!')),
+          SnackBar(
+            content: Text(
+              widget.morador != null
+                  ? AppLocalizations.of(context).translate('resident_updated')
+                  : AppLocalizations.of(context).translate('resident_registered'),
+            ),
+          ),
         );
-
-        Navigator.pop(context);
-      } catch (e) {
+      }
+    } catch (e) {
+      if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro: ${e.toString()}')),
+          SnackBar(
+            content: Text('${AppLocalizations.of(context).translate('error')}: $e'),
+            backgroundColor: Colors.red,
+          ),
         );
-      } finally {
-        setState(() {
-          _isLoading = false;
-        });
+      }
+    } finally {
+      if (mounted) {
+        setState(() => _isLoading = false);
       }
     }
-  }
-
-  @override
-  void dispose() {
-    _nomeController.dispose();
-    _cpfController.dispose();
-    _telefoneController.dispose();
-    _emailController.dispose();
-    _senhaController.dispose();
-    super.dispose();
   }
 }
