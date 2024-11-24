@@ -8,6 +8,7 @@ import '../../models/morador_model.dart';
 import '../../localizations/app_localizations.dart';
 import 'cadastro_moradores_view.dart';
 import '../../views/chat/chat_view.dart';
+import 'mapa_view.dart';
 
 class MoradoresView extends StatefulWidget {
   const MoradoresView({super.key});
@@ -284,6 +285,31 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
                   ),
                 ),
               ),
+              colorScheme: colorScheme,
+            ),
+            _buildActionButton(
+              icon: Icons.map,
+              label: localizations.translate('map'),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => const MapaView(),
+                  ),
+                ).then((_) {
+                  // Aguarda a construção do MapaView e então busca o endereço
+                  Future.delayed(const Duration(milliseconds: 500), () {
+                    if (context.mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text('Buscando endereço do morador...'),
+                          duration: const Duration(seconds: 2),
+                        ),
+                      );
+                    }
+                  });
+                });
+              },
               colorScheme: colorScheme,
             ),
             _buildActionButton(
