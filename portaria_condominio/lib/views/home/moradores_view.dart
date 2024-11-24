@@ -3,10 +3,8 @@ import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:portaria_condominio/controllers/morador_controller.dart';
 import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../controllers/configuracoes_controller.dart';
 import '../../models/morador_model.dart';
 import '../../localizations/app_localizations.dart';
-import 'cadastro_moradores_view.dart';
 import '../../views/chat/chat_view.dart';
 import 'mapa_view.dart';
 

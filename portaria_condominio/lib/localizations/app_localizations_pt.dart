@@ -53,6 +53,20 @@ class AppLocalizationsPt {
     'notifications': 'Notificações',
     'map': 'Mapa',
     
+    // Common fields
+    'name': 'Nome',
+    'cpf': 'CPF',
+    'phone': 'Telefone',
+    'address': 'Endereço',
+    'apartment': 'Apartamento',
+    'apartment_required': 'Apartamento é obrigatório',
+    'observations': 'Observações',
+    'title': 'Título',
+    'description': 'Descrição',
+    'status': 'Status',
+    'resident': 'Morador',
+    'resident_required': 'Selecione um morador',
+    
     // Map features
     'map_title': 'Mapa',
     'search_address': 'Buscar endereço...',
@@ -60,8 +74,6 @@ class AppLocalizationsPt {
     // Residents
     'no_residents_found': 'Nenhum morador encontrado',
     'user_role': 'Morador',
-    'cpf': 'CPF',
-    'phone': 'Telefone',
     'call': 'Ligar',
     'message': 'Mensagem',
     'whatsapp': 'WhatsApp',
@@ -72,24 +84,53 @@ class AppLocalizationsPt {
     'resident_deleted': 'Morador excluído com sucesso!',
     'error_deleting_resident': 'Erro ao excluir morador',
     
-    // Cadastro de Moradores
+    // Resident Registration
     'add_resident': 'Cadastrar Morador',
     'edit_resident': 'Editar Morador',
-    'name': 'Nome',
     'name_required': 'Informe o nome',
     'cpf_required': 'Informe o CPF',
     'phone_required': 'Informe o telefone',
-    'address': 'Endereço',
     'address_required': 'Informe o endereço',
     'email_required': 'Informe o email',
     'password_required': 'Informe a senha',
-    'apartment': 'Apartamento',
-    'apartment_required': 'Informe o apartamento',
     'save_changes': 'Salvar Alterações',
     'resident_updated': 'Morador atualizado com sucesso!',
     'resident_registered': 'Morador cadastrado com sucesso!',
     
-    // Ações gerais
+    // Visits
+    'add_visit': 'Adicionar Visita',
+    'edit_visit': 'Editar Visita',
+    'expected_date': 'Data Prevista',
+    'date_required': 'Informe a data prevista',
+    'expected_time': 'Hora Prevista',
+    'time_required': 'Informe a hora prevista',
+    'confirm_visit_deletion': 'Tem certeza que deseja excluir a visita de {name}?',
+    'visit_deleted_successfully': 'Visita excluída com sucesso',
+    'error_deleting_visit': 'Erro ao excluir visita',
+    'visit_updated': 'Visita atualizada com sucesso',
+    'visit_added': 'Visita adicionada com sucesso',
+    'error_adding_visit': 'Erro ao adicionar visita',
+    'error_updating_visit': 'Erro ao atualizar visita',
+    'visit_details': 'Detalhes da Visita',
+    'no_visits_found': 'Nenhuma visita encontrada',
+    
+    // Visit status
+    'entry_allowed': 'Entrada liberada',
+    'scheduled': 'Agendada',
+    'in_progress': 'Em andamento',
+    'completed': 'Concluída',
+    'cancelled': 'Cancelada',
+    'realized': 'Realizada',
+    'unknown_status': 'Status desconhecido',
+    
+    // Visit actions
+    'allow_entry': 'Liberar entrada',
+    'revoke_entry': 'Revogar entrada',
+    'entry_revoked': 'Entrada revogada',
+    'error_allowing_entry': 'Erro ao liberar entrada',
+    'error_revoking_entry': 'Erro ao revogar entrada',
+    
+    // General actions
     'logout': 'Sair',
     'delete_confirmation': 'Digite "excluir" para confirmar',
     'save': 'Salvar',
@@ -97,7 +138,7 @@ class AppLocalizationsPt {
     'add': 'Adicionar',
     'confirm': 'Confirmar',
     
-    // Notificações
+    // Notifications
     'send_notification': 'Enviar Notificação',
     'new_notification': 'Nova Notificação',
     'add_notification': 'Adicionar Notificação',
@@ -105,8 +146,6 @@ class AppLocalizationsPt {
     'notification_marked_as_read': 'Notificação marcada como lida',
     'notification_marked_as_unread': 'Notificação marcada como não lida',
     'no_notifications': 'Nenhuma notificação encontrada',
-    'title': 'Título',
-    'description': 'Descrição',
     'fill_all_fields': 'Preencha todos os campos',
     'error': 'Erro',
     'mark_as_read': 'Marcar como lida',
@@ -121,7 +160,18 @@ class AppLocalizationsPt {
     'unread': 'Não lida',
     'notification_status': 'Status da notificação',
     
-    // Outros
+    // Service Providers
+    'service_providers': 'Prestadores de Serviço',
+    'add_service_provider': 'Adicionar Prestador',
+    'edit_service_provider': 'Editar Prestador',
+    'service_provider_added': 'Prestador adicionado com sucesso',
+    'service_provider_updated': 'Prestador atualizado com sucesso',
+    'error_adding_service_provider': 'Erro ao adicionar prestador',
+    'error_updating_service_provider': 'Erro ao atualizar prestador',
+    'company': 'Empresa',
+    'company_required': 'Empresa é obrigatória',
+    
+    // Others
     'no_results_found': 'Nenhum resultado encontrado',
     'menu': 'Menu',
     'profile': 'Perfil',

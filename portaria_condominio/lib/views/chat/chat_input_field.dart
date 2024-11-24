@@ -1,16 +1,18 @@
 import 'package:flutter/material.dart';
-import '../../controllers/auth_controller.dart';
 import '../../controllers/chat_controller.dart';
-import '../../models/message_model.dart';
+
+typedef OnSendMessageCallback = Future<void> Function(String content);
 
 class ChatInputField extends StatefulWidget {
   final ChatController chatController;
   final String receiverId;
+  final OnSendMessageCallback onSendMessage;
 
   const ChatInputField({
     super.key,
     required this.chatController,
     required this.receiverId,
+    required this.onSendMessage,
   });
 
   @override
@@ -19,16 +21,14 @@ class ChatInputField extends StatefulWidget {
 
 class _ChatInputFieldState extends State<ChatInputField> {
   final TextEditingController _messageController = TextEditingController();
-  final AuthController _authController = AuthController();
   bool _isSending = false;
 
   void _sendMessage() async {
-    final String? senderId = _authController.currentUser?.uid;
     final String messageContent = _messageController.text.trim();
 
-    if (senderId == null || messageContent.isEmpty) {
+    if (messageContent.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Mensagem vazia ou usuário não autenticado.')),
+        const SnackBar(content: Text('Digite uma mensagem.')),
       );
       return;
     }
@@ -37,24 +37,19 @@ class _ChatInputFieldState extends State<ChatInputField> {
       _isSending = true;
     });
 
-    final message = Message(
-      senderId: senderId,
-      receiverId: widget.receiverId,
-      content: messageContent,
-      timestamp: DateTime.now(),
-    );
-
     try {
-      await widget.chatController.sendMessage(message);
-      _messageController.clear(); // Limpa o campo de entrada após o envio
+      await widget.onSendMessage(messageContent);
+      _messageController.clear();
     } catch (e) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao enviar mensagem: $e')),
       );
     } finally {
-      setState(() {
-        _isSending = false;
-      });
+      if (mounted) {
+        setState(() {
+          _isSending = false;
+        });
+      }
     }
   }
 
@@ -67,19 +62,41 @@ class _ChatInputFieldState extends State<ChatInputField> {
           Expanded(
             child: TextField(
               controller: _messageController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'Digite sua mensagem...',
-                border: OutlineInputBorder(),
+                filled: true,
+                fillColor: Theme.of(context).colorScheme.surfaceVariant.withOpacity(0.3),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide.none,
+                ),
+                enabledBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.outline.withOpacity(0.3),
+                  ),
+                ),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(24),
+                  borderSide: BorderSide(
+                    color: Theme.of(context).colorScheme.primary,
+                    width: 2,
+                  ),
+                ),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
               ),
               textInputAction: TextInputAction.send,
-              onSubmitted: (_) => _sendMessage(), // Envia ao pressionar Enter
+              onSubmitted: (_) => _sendMessage(),
             ),
           ),
           const SizedBox(width: 8),
           IconButton(
             icon: Icon(
               _isSending ? Icons.hourglass_empty : Icons.send,
-              color: Theme.of(context).primaryColor,
+              // Usando as cores do tema Material 3
+              color: _isSending 
+                ? Theme.of(context).colorScheme.onSurfaceVariant
+                : Theme.of(context).colorScheme.primary,
             ),
             onPressed: _isSending ? null : _sendMessage,
           ),

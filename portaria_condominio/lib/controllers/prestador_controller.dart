@@ -118,31 +118,40 @@ class PrestadorController {
     }
   }
 
-  /// **READ** - Buscar todos os prestadores
+  /// **READ** - Buscar todos os prestadores do Firestore
   Future<List<Prestador>> buscarTodosPrestadores() async {
     try {
-      QuerySnapshot<Map<String, dynamic>> snapshot =
-          await FirebaseFirestore.instance.collection('prestador').get();
-
-      return snapshot.docs.map((doc) => Prestador.fromDocument(doc)).toList();
+      final QuerySnapshot querySnapshot = await _prestadoresCollection.get();
+      return querySnapshot.docs
+          .map((doc) => Prestador.fromDocument(doc as DocumentSnapshot<Map<String, dynamic>>))
+          .toList();
     } catch (e) {
       throw Exception('Erro ao buscar prestadores: $e');
     }
   }
 
-  /// **UPDATE** - Atualizar os dados de um prestador no Firestore
-  Future<void> atualizarPrestador(Prestador prestador) async {
+  /// **UPDATE** - Atualizar um prestador existente no Firestore
+  Future<void> editarPrestador(Prestador prestador) async {
     try {
-      await _prestadoresCollection.doc(prestador.id).update(prestador.toJson());
+      await _prestadoresCollection.doc(prestador.id).update({
+        'nome': prestador.nome,
+        'cpf': prestador.cpf,
+        'empresa': prestador.empresa,
+        'telefone': prestador.telefone,
+        'email': prestador.email,
+        'senha': prestador.senha,
+        'liberacaoCadastro': prestador.liberacaoCadastro,
+        'role': prestador.role,
+      });
     } catch (e) {
       throw Exception('Erro ao atualizar prestador: $e');
     }
   }
 
-  /// **DELETE** - Excluir um prestador pelo ID
-  Future<void> excluirPrestador(String id) async {
+  /// **DELETE** - Remover um prestador do Firestore
+  Future<void> excluirPrestador(String prestadorId) async {
     try {
-      await _prestadoresCollection.doc(id).delete();
+      await _prestadoresCollection.doc(prestadorId).delete();
     } catch (e) {
       throw Exception('Erro ao excluir prestador: $e');
     }

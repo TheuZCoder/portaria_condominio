@@ -5,7 +5,7 @@ import '../../controllers/auth_controller.dart';
 import '../../models/message_model.dart';
 import 'chat_input_field.dart';
 
-class ChatView extends StatelessWidget {
+class ChatView extends StatefulWidget {
   final String receiverId;
   final String receiverName;
 
@@ -16,25 +16,34 @@ class ChatView extends StatelessWidget {
   });
 
   @override
+  State<ChatView> createState() => _ChatViewState();
+}
+
+class _ChatViewState extends State<ChatView> {
+  final chatController = ChatController();
+  final authController = AuthController();
+  bool _isFirstLoad = true;
+
+  @override
   Widget build(BuildContext context) {
-    final chatController = ChatController();
-    final authController = AuthController();
     final userId = authController.currentUser?.uid;
 
     if (userId == null) {
       return Scaffold(
-        appBar: AppBar(title: Text('Chat com $receiverName')),
+        appBar: AppBar(title: Text('Chat com ${widget.receiverName}')),
         body: const Center(child: Text('Usuário não autenticado.')),
       );
     }
 
+    final chatId = _generateChatId(userId, widget.receiverId);
+
     return Scaffold(
-      appBar: AppBar(title: Text('Chat com $receiverName')),
+      appBar: AppBar(title: Text('Chat com ${widget.receiverName}')),
       body: Column(
         children: [
           Expanded(
             child: StreamBuilder<List<Message>>(
-              stream: chatController.getMessages(userId, receiverId),
+              stream: chatController.getMessages(userId, widget.receiverId),
               builder: (context, snapshot) {
                 if (snapshot.connectionState == ConnectionState.waiting) {
                   return const Center(child: CircularProgressIndicator());
@@ -46,8 +55,14 @@ class ChatView extends StatelessWidget {
 
                 final messages = snapshot.data!;
 
+                // Marca mensagens como entregues/lidas na primeira carga
+                if (_isFirstLoad) {
+                  _isFirstLoad = false;
+                  _updateMessageStatus(messages, userId, widget.receiverId);
+                }
+
                 return ListView.builder(
-                  reverse: true, // Desative o reverse para exibir em ordem de envio
+                  reverse: true,
                   itemCount: messages.length,
                   itemBuilder: (context, index) {
                     final message = messages[index];
@@ -60,8 +75,8 @@ class ChatView extends StatelessWidget {
                       ),
                       child: Row(
                         mainAxisAlignment: isSentByUser
-                            ? MainAxisAlignment.end // Mensagem do usuário à direita
-                            : MainAxisAlignment.start, // Mensagem recebida à esquerda
+                            ? MainAxisAlignment.end
+                            : MainAxisAlignment.start,
                         children: [
                           Flexible(
                             child: Container(
@@ -94,14 +109,33 @@ class ChatView extends StatelessWidget {
                                     ),
                                   ),
                                   const SizedBox(height: 4),
-                                  Text(
-                                    DateFormat('HH:mm').format(message.timestamp),
-                                    style: TextStyle(
-                                      color: isSentByUser
-                                          ? Colors.white70
-                                          : Colors.black54,
-                                      fontSize: 12,
-                                    ),
+                                  Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        DateFormat('HH:mm').format(message.timestamp),
+                                        style: TextStyle(
+                                          color: isSentByUser
+                                              ? Colors.white70
+                                              : Colors.black54,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      if (isSentByUser) ...[
+                                        const SizedBox(width: 4),
+                                        Icon(
+                                          message.status == MessageStatus.sent
+                                              ? Icons.check
+                                              : message.status == MessageStatus.delivered
+                                                  ? Icons.done_all
+                                                  : Icons.done_all,
+                                          size: 16,
+                                          color: message.status == MessageStatus.read
+                                              ? Colors.blue[100]
+                                              : Colors.white70,
+                                        ),
+                                      ],
+                                    ],
                                   ),
                                 ],
                               ),
@@ -117,10 +151,36 @@ class ChatView extends StatelessWidget {
           ),
           ChatInputField(
             chatController: chatController,
-            receiverId: receiverId,
+            receiverId: widget.receiverId,
+            onSendMessage: (content) async {
+              final message = Message(
+                senderId: userId,
+                receiverId: widget.receiverId,
+                content: content,
+                timestamp: DateTime.now(),
+                status: MessageStatus.sent,
+              );
+              await chatController.sendMessage(message);
+            },
           ),
         ],
       ),
     );
+  }
+
+  String _generateChatId(String userId, String receiverId) {
+    return userId.hashCode <= receiverId.hashCode
+        ? '${userId}_$receiverId'
+        : '${receiverId}_$userId';
+  }
+
+  void _updateMessageStatus(List<Message> messages, String userId, String receiverId) {
+    // Se houver mensagens não entregues, marca como entregues
+    chatController.markAllAsDelivered(userId, receiverId);
+    
+    // Se o chat estiver aberto, marca como lidas
+    if (mounted) {
+      chatController.markAllAsRead(userId, receiverId);
+    }
   }
 }

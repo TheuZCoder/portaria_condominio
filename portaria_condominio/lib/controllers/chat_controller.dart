@@ -9,6 +9,12 @@ class ChatController {
     try {
       final chatId = _generateChatId(message.senderId, message.receiverId);
 
+      await _firestore.collection('chats').doc(chatId).set({
+        'participants': [message.senderId, message.receiverId],
+        'lastMessage': message.content,
+        'lastMessageTime': FieldValue.serverTimestamp(),
+      }, SetOptions(merge: true));
+
       await _firestore
           .collection('chats')
           .doc(chatId)
@@ -34,12 +40,152 @@ class ChatController {
             .toList());
   }
 
+  /// Obtém a lista de chats do usuário
+  Stream<List<Map<String, dynamic>>> getUserChats(String userId) {
+    return _firestore
+        .collection('chats')
+        .where('participants', arrayContains: userId)
+        .snapshots()
+        .map((snapshot) => snapshot.docs.map((doc) {
+              final data = doc.data();
+              return {
+                'chatId': doc.id,
+                'participants': data['participants'] as List<dynamic>,
+                'lastMessage': data['lastMessage'] as String?,
+                'lastMessageTime': data['lastMessageTime'] as Timestamp?,
+                'unreadCount': data['unreadCount'] ?? 0,
+              };
+            }).toList());
+  }
+
+  /// Marca mensagens como entregues
+  Future<void> markAsDelivered(String chatId, String messageId) async {
+    try {
+      await _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .doc(messageId)
+          .update({'status': MessageStatus.delivered.index});
+    } catch (e) {
+      throw Exception('Erro ao marcar mensagem como entregue: $e');
+    }
+  }
+
+  /// Marca mensagens como lidas
+  Future<void> markAsRead(String chatId, String messageId) async {
+    try {
+      await _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .doc(messageId)
+          .update({'status': MessageStatus.read.index});
+    } catch (e) {
+      throw Exception('Erro ao marcar mensagem como lida: $e');
+    }
+  }
+
+  /// Marca todas as mensagens não lidas como entregues
+  Future<void> markAllAsDelivered(String senderId, String currentUserId) async {
+    final chatId = _generateChatId(senderId, currentUserId);
+    try {
+      final messages = await _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .where('receiverId', isEqualTo: currentUserId)
+          .where('status', isEqualTo: MessageStatus.sent.index)
+          .get();
+
+      final batch = _firestore.batch();
+      for (var doc in messages.docs) {
+        batch.update(doc.reference, {'status': MessageStatus.delivered.index});
+      }
+      await batch.commit();
+    } catch (e) {
+      throw Exception('Erro ao marcar mensagens como entregues: $e');
+    }
+  }
+
+  /// Marca todas as mensagens entregues como lidas
+  Future<void> markAllAsRead(String senderId, String currentUserId) async {
+    final chatId = _generateChatId(senderId, currentUserId);
+    try {
+      final messages = await _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .where('receiverId', isEqualTo: currentUserId)
+          .where('status', isEqualTo: MessageStatus.delivered.index)
+          .get();
+
+      final batch = _firestore.batch();
+      for (var doc in messages.docs) {
+        batch.update(doc.reference, {'status': MessageStatus.read.index});
+      }
+      await batch.commit();
+    } catch (e) {
+      throw Exception('Erro ao marcar mensagens como lidas: $e');
+    }
+  }
+
+  /// Atualiza o status online do usuário
+  Future<void> updateUserStatus(String userId, bool isOnline) async {
+    try {
+      await _firestore.collection('users').doc(userId).update({
+        'isOnline': isOnline,
+        'lastSeen': FieldValue.serverTimestamp(),
+      });
+    } catch (e) {
+      throw Exception('Erro ao atualizar status do usuário: $e');
+    }
+  }
+
+  /// Obtém o status online de um usuário
+  Stream<bool> getUserOnlineStatus(String userId) {
+    return _firestore
+        .collection('users')
+        .doc(userId)
+        .snapshots()
+        .map((snapshot) => snapshot.data()?['isOnline'] ?? false);
+  }
+
+  /// Obtém o número de mensagens não lidas
+  Future<int> getUnreadMessagesCount(String userId, String chatId) async {
+    try {
+      final messages = await _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .where('receiverId', isEqualTo: userId)
+          .where('status', isEqualTo: MessageStatus.sent.index)
+          .get();
+
+      return messages.docs.length;
+    } catch (e) {
+      throw Exception('Erro ao obter contagem de mensagens não lidas: $e');
+    }
+  }
+
+  /// Deleta uma mensagem
+  Future<void> deleteMessage(String chatId, String messageId) async {
+    try {
+      await _firestore
+          .collection('chats')
+          .doc(chatId)
+          .collection('messages')
+          .doc(messageId)
+          .delete();
+    } catch (e) {
+      throw Exception('Erro ao deletar mensagem: $e');
+    }
+  }
+
   /// Gera um ID único para o chat com base nos dois usuários envolvidos
   String _generateChatId(String userId, String receiverId) {
     return userId.hashCode <= receiverId.hashCode
         ? '${userId}_$receiverId'
         : '${receiverId}_$userId';
   }
-
-  
 }

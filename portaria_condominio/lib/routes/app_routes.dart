@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../views/chat/chat_view.dart';
 import '../views/chat/user_list_view.dart';
 import '../views/home/cadastro_notificacoes.dart';
@@ -32,12 +33,17 @@ class AppRoutes {
     final name = settings.name;
     debugPrint('AppRoutes: Generating route for: $name');
     
+    final currentUserId = FirebaseAuth.instance.currentUser?.uid;
+    if (currentUserId == null && name != login && name != cadastro) {
+      return MaterialPageRoute(builder: (_) => const LoginView());
+    }
+
     final routes = {
       login: (_) => const LoginView(),
       cadastro: (_) => const CadastroView(),
       home: (_) => const HomeView(),
       moradores: (_) => const MoradoresView(),
-      prestadores: (_) => const PrestadoresView(),
+      prestadores: (_) => PrestadoresView(currentUserId: currentUserId!),
       visitas: (_) => const VisitasView(),
       pedidos: (_) => const PedidosView(),
       notificacoes: (_) => const NotificationsView(),
@@ -58,7 +64,11 @@ class AppRoutes {
       final receiverId = args['id'] as String;
       final receiverName = args['nome'] as String;
       return MaterialPageRoute(
-        builder: (_) => ChatView(receiverId: receiverId, receiverName: receiverName),
+        builder: (_) => ChatView(
+          // currentUserId: currentUserId!,
+          receiverId: receiverId,
+          receiverName: receiverName,
+        ),
       );
     }
 
