@@ -5,16 +5,17 @@ import 'package:firebase_core/firebase_core.dart';
 import 'controllers/configuracoes_controller.dart';
 import 'localizations/app_localizations.dart';
 import 'routes/app_routes.dart';
-import 'themes/app_theme.dart';
+import 'theme_provider.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  await Firebase.initializeApp(); // Inicialização do Firebase
+  await Firebase.initializeApp();
 
   runApp(
     MultiProvider(
       providers: [
         ChangeNotifierProvider(create: (_) => ConfiguracoesController()),
+        ChangeNotifierProvider(create: (_) => ThemeProvider()),
       ],
       child: const MyApp(),
     ),
@@ -32,12 +33,11 @@ class _MyAppState extends State<MyApp> {
   @override
   Widget build(BuildContext context) {
     final configController = context.watch<ConfiguracoesController>();
+    final themeProvider = context.watch<ThemeProvider>();
 
     return MaterialApp(
       title: 'Gestão de Condomínio',
-      theme: AppTheme.lightTheme,
-      darkTheme: AppTheme.darkTheme,
-      themeMode: configController.themeMode,
+      theme: themeProvider.currentTheme,
       locale: configController.locale,
       supportedLocales: AppLocalizations.supportedLocales,
       debugShowCheckedModeBanner: false,
@@ -48,7 +48,7 @@ class _MyAppState extends State<MyApp> {
         GlobalCupertinoLocalizations.delegate,
       ],
       initialRoute: AppRoutes.login,
-      onGenerateRoute: AppRoutes.onGenerateRoute, // Usar rotas dinâmicas
+      onGenerateRoute: AppRoutes.onGenerateRoute,
     );
   }
 }

@@ -2,47 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class Preferences {
-  static const _themeKey = 'theme';
+  static const _themePresetKey = 'theme_preset';
   static const _localeKey = 'locale';
   static const _emailKey = 'email';
   static const _rememberEmailKey = 'rememberEmail';
-  static const _primaryColorKey = 'primaryColor';
-  static const _iconColorKey = 'iconColor';
-
-  /// **Salvar Cor Primária**
-  static Future<void> savePrimaryColor(int color) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_primaryColorKey, color);
-  }
-
-  /// **Carregar Cor Primária**
-  static Future<int> loadPrimaryColor() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt(_primaryColorKey) ?? Colors.blue.value;
-  }
-
-  /// **Salvar Cor dos Ícones**
-  static Future<void> saveIconColor(int color) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt(_iconColorKey, color);
-  }
-
-  /// **Carregar Cor dos Ícones**
-  static Future<int> loadIconColor() async {
-    final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt(_iconColorKey) ?? Colors.blue.value;
-  }
 
   /// **Salvar Tema**
-  static Future<void> saveTheme(bool isDarkMode) async {
+  static Future<void> saveThemePreset(int presetIndex) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool(_themeKey, isDarkMode);
+    await prefs.setInt(_themePresetKey, presetIndex);
   }
 
   /// **Carregar Tema**
-  static Future<bool> loadTheme() async {
+  static Future<int> loadThemePreset() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getBool(_themeKey) ?? false; // Default to light mode
+    return prefs.getInt(_themePresetKey) ?? 0; // Default to first preset
   }
 
   /// **Salvar Idioma**
@@ -54,7 +28,7 @@ class Preferences {
   /// **Carregar Idioma**
   static Future<String> loadLocale() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getString(_localeKey) ?? 'en'; // Default to English
+    return prefs.getString(_localeKey) ?? 'pt'; // Default to Portuguese
   }
 
   /// **Salvar Email**
@@ -81,7 +55,7 @@ class Preferences {
     return prefs.getBool(_rememberEmailKey) ?? false;
   }
 
-  /// **Limpar Preferências (Opcional)**
+  /// **Limpar Preferências**
   static Future<void> clearAll() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.clear();

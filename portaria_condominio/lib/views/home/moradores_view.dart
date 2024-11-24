@@ -77,6 +77,7 @@ class _MoradoresViewState extends State<MoradoresView> {
 
   Widget _buildMoradorCard(Morador morador, int index) {
     final bool isExpanded = expandedIndex == index;
+    final colorScheme = Theme.of(context).colorScheme;
 
     return AnimatedSize(
       duration: const Duration(milliseconds: 300),
@@ -86,9 +87,20 @@ class _MoradoresViewState extends State<MoradoresView> {
         child: Column(
           children: [
             ListTile(
-              leading: const Icon(Icons.person),
-              title: Text(morador.nome),
-              subtitle: Text(morador.email),
+              leading: Icon(Icons.person, color: colorScheme.primary),
+              title: Text(
+                morador.nome,
+                style: TextStyle(
+                  color: colorScheme.onSurface,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              subtitle: Text(
+                morador.email,
+                style: TextStyle(
+                  color: colorScheme.onSurfaceVariant,
+                ),
+              ),
               onTap: () {
                 setState(() {
                   expandedIndex = isExpanded ? null : index;
@@ -96,6 +108,7 @@ class _MoradoresViewState extends State<MoradoresView> {
               },
               trailing: Icon(
                 isExpanded ? Icons.expand_less : Icons.expand_more,
+                color: colorScheme.primary,
               ),
             ),
             AnimatedSwitcher(
@@ -112,6 +125,7 @@ class _MoradoresViewState extends State<MoradoresView> {
   }
 
   Widget _expandedDetails(Morador morador) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       key: const ValueKey('expandedDetails'),
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
@@ -131,7 +145,7 @@ class _MoradoresViewState extends State<MoradoresView> {
   }
 
   Widget _infoRow({required String label, required String value}) {
-    final theme = Theme.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -139,14 +153,14 @@ class _MoradoresViewState extends State<MoradoresView> {
           '$label ',
           style: TextStyle(
             fontWeight: FontWeight.bold,
-            color: theme.textTheme.bodyLarge?.color,
+            color: colorScheme.primary,
           ),
         ),
         Expanded(
           child: Text(
             value,
             style: TextStyle(
-              color: theme.textTheme.bodyLarge?.color?.withOpacity(0.7),
+              color: colorScheme.onSurface,
             ),
           ),
         ),
@@ -155,6 +169,7 @@ class _MoradoresViewState extends State<MoradoresView> {
   }
 
   Widget _expandedButtons(Morador morador) {
+    final colorScheme = Theme.of(context).colorScheme;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 8.0, vertical: 8.0),
       child: SingleChildScrollView(
@@ -166,11 +181,13 @@ class _MoradoresViewState extends State<MoradoresView> {
               icon: Icons.phone,
               label: 'Ligar',
               onTap: () => _callProvider(morador.telefone),
+              color: colorScheme.primary,
             ),
             _actionButton(
               icon: Icons.message,
               label: 'Mensagem',
               onTap: () => _sendMessage(morador.telefone),
+              color: colorScheme.primary,
             ),
             _actionButton(
               icon: FontAwesomeIcons.whatsapp,
@@ -179,16 +196,19 @@ class _MoradoresViewState extends State<MoradoresView> {
                   context: context,
                   text: "Olá, ${morador.nome}!",
                   number: morador.telefone),
+              color: colorScheme.primary,
             ),
             _actionButton(
               icon: Icons.edit,
               label: 'Editar',
               onTap: () => _editResident(morador),
+              color: colorScheme.primary,
             ),
             _actionButton(
               icon: Icons.delete,
               label: 'Excluir',
               onTap: () => _deleteResident(morador),
+              color: colorScheme.primary,
             ),
           ],
         ),
@@ -200,8 +220,9 @@ class _MoradoresViewState extends State<MoradoresView> {
     required IconData icon,
     required String label,
     required VoidCallback onTap,
+    required Color color,
   }) {
-    final configController = context.read<ConfiguracoesController>();
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Column(
       children: [
@@ -213,11 +234,10 @@ class _MoradoresViewState extends State<MoradoresView> {
             height: 60,
             margin: const EdgeInsets.symmetric(horizontal: 8.0),
             decoration: BoxDecoration(
-              color:
-                  configController.iconColor ?? Theme.of(context).primaryColor,
+              color: color,
               shape: BoxShape.circle,
             ),
-            child: Icon(icon, color: Colors.white, size: 30),
+            child: Icon(icon, color: colorScheme.onPrimary, size: 30),
           ),
         ),
         const SizedBox(height: 8),
@@ -225,7 +245,7 @@ class _MoradoresViewState extends State<MoradoresView> {
           label,
           style: TextStyle(
             fontSize: 12,
-            color: Theme.of(context).textTheme.bodyLarge?.color,
+            color: colorScheme.onSurface,
           ),
           textAlign: TextAlign.center,
         ),
@@ -294,30 +314,62 @@ class _MoradoresViewState extends State<MoradoresView> {
     final TextEditingController enderecoController =
         TextEditingController(text: morador.endereco);
 
+    final colorScheme = Theme.of(context).colorScheme;
+
     await showDialog(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Editar Morador'),
+          title: Text(
+            'Editar Morador',
+            style: TextStyle(
+              color: colorScheme.onSurface,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           content: SingleChildScrollView(
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
                 TextField(
                   controller: nomeController,
-                  decoration: const InputDecoration(labelText: 'Nome'),
+                  decoration: InputDecoration(
+                    labelText: 'Nome',
+                    labelStyle: TextStyle(color: colorScheme.primary),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: colorScheme.primary),
+                    ),
+                  ),
                 ),
                 TextField(
                   controller: cpfController,
-                  decoration: const InputDecoration(labelText: 'CPF'),
+                  decoration: InputDecoration(
+                    labelText: 'CPF',
+                    labelStyle: TextStyle(color: colorScheme.primary),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: colorScheme.primary),
+                    ),
+                  ),
                 ),
                 TextField(
                   controller: telefoneController,
-                  decoration: const InputDecoration(labelText: 'Telefone'),
+                  decoration: InputDecoration(
+                    labelText: 'Telefone',
+                    labelStyle: TextStyle(color: colorScheme.primary),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: colorScheme.primary),
+                    ),
+                  ),
                 ),
                 TextField(
                   controller: enderecoController,
-                  decoration: const InputDecoration(labelText: 'Endereço'),
+                  decoration: InputDecoration(
+                    labelText: 'Endereço',
+                    labelStyle: TextStyle(color: colorScheme.primary),
+                    focusedBorder: UnderlineInputBorder(
+                      borderSide: BorderSide(color: colorScheme.primary),
+                    ),
+                  ),
                 ),
               ],
             ),
@@ -325,9 +377,16 @@ class _MoradoresViewState extends State<MoradoresView> {
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context),
-              child: const Text('Cancelar'),
+              child: Text(
+                'Cancelar',
+                style: TextStyle(color: colorScheme.primary),
+              ),
             ),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colorScheme.primary,
+                foregroundColor: colorScheme.onPrimary,
+              ),
               onPressed: () async {
                 try {
                   final atualizado = Morador(
@@ -335,21 +394,28 @@ class _MoradoresViewState extends State<MoradoresView> {
                     nome: nomeController.text.trim(),
                     cpf: cpfController.text.trim(),
                     telefone: telefoneController.text.trim(),
-                    email: morador.email, // Não editável
-                    senha: morador.senha, // Não editável
+                    email: morador.email,
+                    senha: morador.senha,
                     endereco: enderecoController.text.trim(),
-                    role: morador.role, // Mantém o mesmo papel
+                    role: morador.role,
                   );
                   await _controller.atualizarMorador(atualizado);
-                  setState(() {}); // Atualiza a lista
-                  Navigator.pop(context); // Fecha o diálogo
+                  setState(() {
+                    _futureMoradores = _controller.buscarTodosMoradores();
+                  });
+                  Navigator.pop(context);
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text('Morador atualizado com sucesso!')),
+                    SnackBar(
+                      content: const Text('Morador atualizado com sucesso!'),
+                      backgroundColor: colorScheme.primary,
+                    ),
                   );
                 } catch (e) {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text('Erro ao atualizar morador: $e')),
+                    SnackBar(
+                      content: Text('Erro ao atualizar morador: $e'),
+                      backgroundColor: colorScheme.error,
+                    ),
                   );
                 }
               },
@@ -363,39 +429,63 @@ class _MoradoresViewState extends State<MoradoresView> {
 
   void _deleteResident(Morador morador) async {
     final TextEditingController confirmController = TextEditingController();
+    final colorScheme = Theme.of(context).colorScheme;
 
     final confirmation = await showDialog<bool>(
       context: context,
       builder: (context) {
         return AlertDialog(
-          title: const Text('Confirmar Exclusão'),
+          title: Text(
+            'Confirmar Exclusão',
+            style: TextStyle(
+              color: colorScheme.error,
+              fontWeight: FontWeight.bold,
+            ),
+          ),
           content: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
               Text(
-                  'Digite "excluir" para confirmar a exclusão do morador ${morador.nome}.'),
+                'Digite "excluir" para confirmar a exclusão do morador ${morador.nome}.',
+                style: TextStyle(color: colorScheme.onSurface),
+              ),
               const SizedBox(height: 8),
               TextField(
                 controller: confirmController,
-                decoration: const InputDecoration(
-                    hintText: 'Digite "excluir" para confirmar.'),
+                decoration: InputDecoration(
+                  hintText: 'Digite "excluir" para confirmar.',
+                  hintStyle: TextStyle(color: colorScheme.onSurfaceVariant),
+                  focusedBorder: UnderlineInputBorder(
+                    borderSide: BorderSide(color: colorScheme.error),
+                  ),
+                ),
               ),
             ],
           ),
           actions: [
             TextButton(
               onPressed: () => Navigator.pop(context, false),
-              child: const Text('Cancelar'),
+              child: Text(
+                'Cancelar',
+                style: TextStyle(color: colorScheme.primary),
+              ),
             ),
             ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: colorScheme.error,
+                foregroundColor: colorScheme.onError,
+              ),
               onPressed: () {
                 if (confirmController.text.trim().toLowerCase() == 'excluir') {
                   Navigator.pop(context, true);
                 } else {
                   ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                        content: Text(
-                            'Você precisa digitar "excluir" para confirmar.')),
+                    SnackBar(
+                      content: const Text(
+                        'Você precisa digitar "excluir" para confirmar.',
+                      ),
+                      backgroundColor: colorScheme.error,
+                    ),
                   );
                 }
               },
@@ -409,13 +499,21 @@ class _MoradoresViewState extends State<MoradoresView> {
     if (confirmation == true) {
       try {
         await _controller.excluirMorador(morador.id);
-        setState(() {}); // Atualizar lista após exclusão
+        setState(() {
+          _futureMoradores = _controller.buscarTodosMoradores();
+        });
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('Morador excluído com sucesso!')),
+          SnackBar(
+            content: const Text('Morador excluído com sucesso!'),
+            backgroundColor: colorScheme.primary,
+          ),
         );
       } catch (e) {
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('Erro ao excluir morador: $e')),
+          SnackBar(
+            content: Text('Erro ao excluir morador: $e'),
+            backgroundColor: colorScheme.error,
+          ),
         );
       }
     }

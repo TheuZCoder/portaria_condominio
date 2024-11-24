@@ -1,10 +1,12 @@
-import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import '../../controllers/configuracoes_controller.dart';
 import '../../controllers/notificacoes_controller.dart';
 import '../../localizations/app_localizations.dart';
+import '../../routes/app_routes.dart';
+import '../settings/settings_view.dart';
 
 class HomeView extends StatelessWidget {
   const HomeView({super.key});
@@ -17,7 +19,6 @@ class HomeView extends StatelessWidget {
       return 'unknown';
     }
 
-    // Busca o papel no Firestore
     final doc = await FirebaseFirestore.instance
         .collection('moradores')
         .doc(user.uid)
@@ -35,8 +36,10 @@ class HomeView extends StatelessWidget {
     IconData icon,
     String route,
     ConfiguracoesController configController, {
-    int notificationCount = 0, // Contador de notificações opcional
+    int notificationCount = 0,
   }) {
+    final colorScheme = Theme.of(context).colorScheme;
+    
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, route),
       child: Card(
@@ -51,13 +54,13 @@ class HomeView extends StatelessWidget {
                   Icon(
                     icon,
                     size: 48,
-                    color: configController.iconColor,
+                    color: colorScheme.primary,
                   ),
                   const SizedBox(width: 16),
                   Text(
                     label,
                     style: TextStyle(
-                      color: configController.iconColor,
+                      color: colorScheme.primary,
                     ),
                   ),
                 ],
@@ -65,14 +68,14 @@ class HomeView extends StatelessWidget {
               if (notificationCount > 0)
                 Container(
                   padding: const EdgeInsets.all(8),
-                  decoration: const BoxDecoration(
+                  decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: Colors.red, // Cor do círculo de notificação
+                    color: colorScheme.error,
                   ),
                   child: Text(
                     notificationCount.toString(),
-                    style: const TextStyle(
-                      color: Colors.white,
+                    style: TextStyle(
+                      color: colorScheme.onError,
                       fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
@@ -89,83 +92,90 @@ class HomeView extends StatelessWidget {
   Widget build(BuildContext context) {
     final configController = Provider.of<ConfiguracoesController>(context);
     final localizations = AppLocalizations.of(context);
-    final notificationController =
-        NotificationController(); // Criando uma instância do NotificationController
+    final notificationController = NotificationController();
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-        appBar: AppBar(
-          title: Text(localizations.translate('home_title')),
-        ),
-        drawer: Drawer(
-          child: Column(
-            children: [
-              DrawerHeader(
-                decoration: BoxDecoration(
-                  color: Theme.of(context).primaryColor,
-                ),
-                child: Center(
-                  child: Text(
-                    localizations.translate('menu'),
-                    style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                          color: Colors.white,
-                        ),
+      appBar: AppBar(
+        title: Text(localizations.translate('home_title')),
+      ),
+      drawer: Drawer(
+        child: Column(
+          children: [
+            DrawerHeader(
+              decoration: BoxDecoration(
+                color: colorScheme.primary,
+              ),
+              child: Center(
+                child: Text(
+                  localizations.translate('menu'),
+                  style: TextStyle(
+                    color: colorScheme.onPrimary,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ),
-              ListTile(
-                leading:
-                    Icon(Icons.settings, color: configController.iconColor),
-                title: Text(localizations.translate('settings')),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamed(context, '/configuracoes');
-                },
-              ),
-              ListTile(
-                leading: Icon(Icons.logout, color: configController.iconColor),
-                title: Text(localizations.translate('logout')),
-                onTap: () {
-                  Navigator.pop(context);
-                  Navigator.pushNamedAndRemoveUntil(
-                      context, '/login', (route) => false);
-                },
-              ),
-            ],
-          ),
+            ),
+            ListTile(
+              leading: Icon(Icons.settings, color: colorScheme.primary),
+              title: Text(localizations.translate('settings')),
+              onTap: () {
+                debugPrint('HomeView: Navigating to settings');
+                Navigator.pop(context);
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const SettingsView()),
+                ).then((_) {
+                  debugPrint('HomeView: Returned from settings');
+                }).catchError((error) {
+                  debugPrint('HomeView: Error navigating to settings: $error');
+                });
+              },
+            ),
+            ListTile(
+              leading: Icon(Icons.logout, color: colorScheme.primary),
+              title: Text(localizations.translate('logout')),
+              onTap: () {
+                Navigator.pop(context);
+                Navigator.pushNamedAndRemoveUntil(
+                    context, AppRoutes.login, (route) => false);
+              },
+            ),
+          ],
         ),
-        body: StreamBuilder<int>(
-          stream: notificationController.getUnreadNotificationCount(),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(child: CircularProgressIndicator());
-            }
+      ),
+      body: StreamBuilder<int>(
+        stream: notificationController.getUnreadNotificationCount(),
+        builder: (context, snapshot) {
+          if (snapshot.connectionState == ConnectionState.waiting) {
+            return const Center(child: CircularProgressIndicator());
+          }
 
-            if (snapshot.hasError) {
-              return Center(
-                  child: Text(localizations.translate('error_fetching_data')));
-            }
+          if (snapshot.hasError) {
+            return Center(
+                child: Text(localizations.translate('error_fetching_data')));
+          }
 
-            // Aqui, snapshot.data já é o número de notificações não lidas
-            final notificationCount = snapshot.data ?? 0;
+          final notificationCount = snapshot.data ?? 0;
 
-            // Obtém o papel do usuário
-            return FutureBuilder<String>(
-              future: _getUserRole(),
-              builder: (context, roleSnapshot) {
-                if (roleSnapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(child: CircularProgressIndicator());
-                }
+          return FutureBuilder<String>(
+            future: _getUserRole(),
+            builder: (context, roleSnapshot) {
+              if (roleSnapshot.connectionState == ConnectionState.waiting) {
+                return const Center(child: CircularProgressIndicator());
+              }
 
-                if (roleSnapshot.hasError) {
-                  return Center(
-                      child:
-                          Text(localizations.translate('error_fetching_role')));
-                }
+              if (roleSnapshot.hasError) {
+                return Center(
+                    child: Text(localizations.translate('error_fetching_role')));
+              }
 
-                final userRole =
-                    roleSnapshot.data ?? 'unknown'; // Pega o papel do usuário
+              final userRole = roleSnapshot.data ?? 'unknown';
 
-                final menuItems = <Widget>[
+              return ListView(
+                padding: const EdgeInsets.all(16),
+                children: [
                   if (userRole == 'admin' || userRole == 'portaria')
                     _menuItem(
                       context,
@@ -203,9 +213,16 @@ class HomeView extends StatelessWidget {
                     Icons.notifications,
                     '/notificacoes',
                     configController,
-                    notificationCount:
-                        notificationCount, // Passa o contador em tempo real
+                    notificationCount: notificationCount,
                   ),
+                  if (userRole == 'admin')
+                    _menuItem(
+                      context,
+                      'Cadastro de Notificações',
+                      Icons.notification_add,
+                      '/notificacoesAdmin',
+                      configController,
+                    ),
                   _menuItem(
                     context,
                     localizations.translate('map'),
@@ -213,30 +230,19 @@ class HomeView extends StatelessWidget {
                     '/mapa',
                     configController,
                   ),
-                  if (userRole != 'visitor')
-                    _menuItem(
-                      context,
-                      localizations.translate('chat'),
-                      Icons.chat_bubble,
-                      '/usersListView',
-                      configController,
-                    ),
-                ];
-
-                if (menuItems.isEmpty) {
-                  return Center(
-                    child: Text(localizations.translate('no_access')),
-                  );
-                }
-
-                return ListView.builder(
-                  padding: const EdgeInsets.all(16),
-                  itemCount: menuItems.length,
-                  itemBuilder: (context, index) => menuItems[index],
-                );
-              },
-            );
-          },
-        ));
+                  _menuItem(
+                    context,
+                    localizations.translate('chat'),
+                    Icons.chat,
+                    '/usersListView',
+                    configController,
+                  ),
+                ],
+              );
+            },
+          );
+        },
+      ),
+    );
   }
 }

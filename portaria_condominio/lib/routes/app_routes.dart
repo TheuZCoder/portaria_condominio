@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../views/chat/chat_view.dart';
 import '../views/chat/user_list_view.dart';
 import '../views/home/cadastro_notificacoes.dart';
-import '../views/home/configuracoes_view.dart';
 import '../views/home/home_view.dart';
 import '../views/home/mapa_view.dart';
 import '../views/home/moradores_view.dart';
@@ -12,6 +11,7 @@ import '../views/home/prestadores_view.dart';
 import '../views/home/visitas_view.dart';
 import '../views/login/cadastro_view.dart';
 import '../views/login/login_view.dart';
+import '../views/settings/settings_view.dart';
 
 class AppRoutes {
   static const String login = '/login';
@@ -24,51 +24,46 @@ class AppRoutes {
   static const String notificacoes = '/notificacoes';
   static const String cadastroNotificacoes = '/notificacoesAdmin';
   static const String mapa = '/mapa';
-  static const String configuracoes = '/configuracoes';
+  static const String settings = '/settings';
   static const String usersListView = '/usersListView';
+  static const String chat = '/chat';
 
   static Route<dynamic>? onGenerateRoute(RouteSettings settings) {
-    switch (settings.name) {
-      case login:
-        return MaterialPageRoute(builder: (_) => const LoginView());
-      case cadastro:
-        return MaterialPageRoute(builder: (_) => const CadastroView());
-      case home:
-        return MaterialPageRoute(builder: (_) => const HomeView());
-      case moradores:
-        return MaterialPageRoute(builder: (_) => const MoradoresView());
-      case prestadores:
-        return MaterialPageRoute(builder: (_) => const PrestadoresView());
-      case visitas:
-        return MaterialPageRoute(builder: (_) => const VisitasView());
-      case pedidos:
-        return MaterialPageRoute(builder: (_) => const PedidosView());
-      case notificacoes:
-        return MaterialPageRoute(builder: (_) => const NotificationsView());
-      case mapa:
-        return MaterialPageRoute(builder: (_) => const MapaView());
-      case configuracoes:
-        return MaterialPageRoute(builder: (_) => const ConfiguracoesView());
-      case '/notificacoesAdmin':
-        return MaterialPageRoute(
-            builder: (_) => const NotificationCreationView());
-      case usersListView:
-        return MaterialPageRoute(builder: (_) => const UsersListView());
-      case '/chat':
-        if (settings.arguments is Map<String, dynamic>) {
-          final args = settings.arguments as Map<String, dynamic>;
-          final receiverId = args['id'] as String;
-          final receiverName = args['nome'] as String;
-          return MaterialPageRoute(
-            builder: (_) =>
-                ChatView(receiverId: receiverId, receiverName: receiverName),
-          );
-        } else {
-          return _errorRoute(); // Rota de erro se os argumentos estiverem incorretos
-        }
-      default:
-        return _errorRoute();
+    final name = settings.name;
+    debugPrint('AppRoutes: Generating route for: $name');
+    
+    final routes = {
+      login: (_) => const LoginView(),
+      cadastro: (_) => const CadastroView(),
+      home: (_) => const HomeView(),
+      moradores: (_) => const MoradoresView(),
+      prestadores: (_) => const PrestadoresView(),
+      visitas: (_) => const VisitasView(),
+      pedidos: (_) => const PedidosView(),
+      notificacoes: (_) => const NotificationsView(),
+      mapa: (_) => const MapaView(),
+      settings: (_) => const SettingsView(),
+      cadastroNotificacoes: (_) => const NotificationCreationView(),
+      usersListView: (_) => const UsersListView(),
+    };
+
+    final builder = routes[name];
+    if (builder != null) {
+      debugPrint('AppRoutes: Found builder for route: $name');
+      return MaterialPageRoute(builder: builder);
     }
+
+    if (name == chat && settings.arguments is Map<String, dynamic>) {
+      final args = settings.arguments as Map<String, dynamic>;
+      final receiverId = args['id'] as String;
+      final receiverName = args['nome'] as String;
+      return MaterialPageRoute(
+        builder: (_) => ChatView(receiverId: receiverId, receiverName: receiverName),
+      );
+    }
+
+    debugPrint('AppRoutes: Route not found for: $name');
+    return _errorRoute();
   }
 
   static Route<dynamic> _errorRoute() {

@@ -168,7 +168,7 @@ class _MapaViewState extends State<MapaView> {
                   child: Icon(
                     Icons.my_location,
                     size: 40,
-                    color: configController.iconColor,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
               ],
@@ -181,7 +181,7 @@ class _MapaViewState extends State<MapaView> {
                   child: Icon(
                     Icons.location_on,
                     size: 40,
-                    color: configController.iconColor,
+                    color: Theme.of(context).colorScheme.primary,
                   ),
                 ),
               ],
@@ -191,7 +191,7 @@ class _MapaViewState extends State<MapaView> {
               polylines: [
                 Polyline(
                   points: _routePoints,
-                  color: configController.iconColor,
+                  color: Theme.of(context).colorScheme.primary,
                   strokeWidth: 5.0,
                 ),
               ],
@@ -216,13 +216,13 @@ class _MapaViewState extends State<MapaView> {
                   child: ListTile(
                     leading: Icon(
                       Icons.person,
-                      color: configController.iconColor,
+                      color: Theme.of(context).colorScheme.primary,
                     ),
                     title: Text(morador.nome),
                     subtitle: Text(morador.endereco),
                     trailing: IconButton(
                       icon: Icon(Icons.directions,
-                          color: configController.iconColor),
+                          color: Theme.of(context).colorScheme.primary),
                       onPressed: () => _startRouteToMorador(morador.endereco),
                     ),
                     onTap: () => _showMoradorLocation(morador.endereco),
