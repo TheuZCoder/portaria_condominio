@@ -16,6 +16,7 @@ class _LoginViewState extends State<LoginView> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final LocalAuthentication _localAuth = LocalAuthentication();
+  final _formKey = GlobalKey<FormState>();
   bool _isLoading = false;
   bool _obscurePassword = true;
   String _errorMessage = '';
@@ -51,7 +52,6 @@ class _LoginViewState extends State<LoginView> {
       _isBiometricEnabled = prefs.getBool('isBiometricEnabled') ?? false;
     });
     
-    // Se a biometria estiver habilitada e tiver credenciais salvas, tenta autenticar
     if (_isBiometricEnabled && _isBiometricAvailable && _hasCredentials) {
       await _authenticateWithBiometrics();
     }
@@ -104,7 +104,6 @@ class _LoginViewState extends State<LoginView> {
     final prefs = await SharedPreferences.getInstance();
     
     if (value) {
-      // Se está habilitando a biometria
       if (_emailController.text.isEmpty || _passwordController.text.isEmpty) {
         setState(() {
           _errorMessage = 'Faça login primeiro antes de habilitar a biometria';
@@ -113,7 +112,6 @@ class _LoginViewState extends State<LoginView> {
       }
       await _saveCredentials();
     } else {
-      // Se está desabilitando a biometria, remove as credenciais
       await prefs.remove('password');
       setState(() {
         _hasCredentials = false;
@@ -168,6 +166,10 @@ class _LoginViewState extends State<LoginView> {
   }
 
   Future<void> _handleLogin([String? email, String? password]) async {
+    if (!_formKey.currentState!.validate() && email == null) {
+      return;
+    }
+
     setState(() {
       _isLoading = true;
       _errorMessage = '';
@@ -177,21 +179,11 @@ class _LoginViewState extends State<LoginView> {
       final userEmail = email ?? _emailController.text.trim();
       final userPassword = password ?? _passwordController.text.trim();
 
-      if (userEmail.isEmpty || userPassword.isEmpty) {
-        setState(() {
-          _errorMessage = 'Preencha todos os campos';
-          _isLoading = false;
-        });
-        return;
-      }
-
       final role = await _authController.signIn(userEmail, userPassword);
 
-      // Salvar email sempre
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('email', userEmail);
       
-      // Se biometria estiver habilitada, salva a senha também
       if (_isBiometricEnabled) {
         await prefs.setString('password', userPassword);
         setState(() {
@@ -222,88 +214,158 @@ class _LoginViewState extends State<LoginView> {
   @override
   Widget build(BuildContext context) {
     final appLocalizations = AppLocalizations.of(context);
+    final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(appLocalizations.translate('login_title')),
-        centerTitle: true,
-      ),
-      body: SingleChildScrollView(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Center(
-              child: Image.asset(
-                'assets/img/logo.png',
-                height: 250,
-              ),
-            ),
-            const SizedBox(height: 32),
-            TextField(
-              controller: _emailController,
-              keyboardType: TextInputType.emailAddress,
-              decoration: InputDecoration(
-                labelText: appLocalizations.translate('username'),
-                prefixIcon: const Icon(Icons.email),
-                border: const OutlineInputBorder(),
-              ),
-            ),
-            const SizedBox(height: 16),
-            TextField(
-              controller: _passwordController,
-              obscureText: _obscurePassword,
-              decoration: InputDecoration(
-                labelText: appLocalizations.translate('password'),
-                prefixIcon: const Icon(Icons.lock),
-                suffixIcon: IconButton(
-                  icon: Icon(
-                    _obscurePassword ? Icons.visibility : Icons.visibility_off,
+      body: SafeArea(
+        child: CustomScrollView(
+          slivers: [
+            SliverFillRemaining(
+              hasScrollBody: false,
+              child: Padding(
+                padding: const EdgeInsets.all(24.0),
+                child: Form(
+                  key: _formKey,
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      const Spacer(),
+                      Center(
+                        child: Image.asset(
+                          'assets/img/logo.png',
+                          height: 150,
+                        ),
+                      ),
+                      const SizedBox(height: 48),
+                      Text(
+                        'Bem-vindo',
+                        style: Theme.of(context).textTheme.headlineMedium?.copyWith(
+                          color: colorScheme.primary,
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        'Faça login para continuar',
+                        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+                          color: colorScheme.onSurfaceVariant,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                      const SizedBox(height: 32),
+                      TextFormField(
+                        controller: _emailController,
+                        keyboardType: TextInputType.emailAddress,
+                        decoration: InputDecoration(
+                          labelText: appLocalizations.translate('username'),
+                          prefixIcon: const Icon(Icons.email_outlined),
+                          border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(12)),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor, insira seu email';
+                          }
+                          return null;
+                        },
+                      ),
+                      const SizedBox(height: 16),
+                      TextFormField(
+                        controller: _passwordController,
+                        obscureText: _obscurePassword,
+                        decoration: InputDecoration(
+                          labelText: appLocalizations.translate('password'),
+                          prefixIcon: const Icon(Icons.lock_outline),
+                          suffixIcon: IconButton(
+                            icon: Icon(
+                              _obscurePassword ? Icons.visibility_outlined : Icons.visibility_off_outlined,
+                            ),
+                            onPressed: () {
+                              setState(() {
+                                _obscurePassword = !_obscurePassword;
+                              });
+                            },
+                          ),
+                          border: const OutlineInputBorder(
+                            borderRadius: BorderRadius.all(Radius.circular(12)),
+                          ),
+                        ),
+                        validator: (value) {
+                          if (value == null || value.isEmpty) {
+                            return 'Por favor, insira sua senha';
+                          }
+                          return null;
+                        },
+                      ),
+                      if (_errorMessage.isNotEmpty) ...[
+                        const SizedBox(height: 16),
+                        Container(
+                          padding: const EdgeInsets.all(12),
+                          decoration: BoxDecoration(
+                            color: colorScheme.errorContainer,
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                          child: Text(
+                            _errorMessage,
+                            style: TextStyle(
+                              color: colorScheme.onErrorContainer,
+                            ),
+                            textAlign: TextAlign.center,
+                          ),
+                        ),
+                      ],
+                      if (_isBiometricAvailable) ...[
+                        const SizedBox(height: 16),
+                        SwitchListTile(
+                          title: const Text('Habilitar login com biometria'),
+                          value: _isBiometricEnabled,
+                          onChanged: _toggleBiometric,
+                          secondary: const Icon(Icons.fingerprint),
+                        ),
+                      ],
+                      const Spacer(),
+                      if (_isBiometricEnabled && _hasCredentials && !_isLoading)
+                        Center(
+                          child: IconButton.filled(
+                            icon: const Icon(Icons.fingerprint, size: 32),
+                            onPressed: _authenticateWithBiometrics,
+                            style: IconButton.styleFrom(
+                              backgroundColor: colorScheme.primaryContainer,
+                              foregroundColor: colorScheme.onPrimaryContainer,
+                              padding: const EdgeInsets.all(16),
+                            ),
+                          ),
+                        ),
+                      const SizedBox(height: 16),
+                      FilledButton(
+                        onPressed: _isLoading ? null : () => _handleLogin(),
+                        style: FilledButton.styleFrom(
+                          padding: const EdgeInsets.all(16),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(12),
+                          ),
+                        ),
+                        child: _isLoading
+                            ? const SizedBox(
+                                height: 20,
+                                width: 20,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              )
+                            : Text(
+                                appLocalizations.translate('login_button'),
+                                style: const TextStyle(fontSize: 16),
+                              ),
+                      ),
+                      const SizedBox(height: 16),
+                    ],
                   ),
-                  onPressed: () {
-                    setState(() {
-                      _obscurePassword = !_obscurePassword;
-                    });
-                  },
                 ),
-                border: const OutlineInputBorder(),
               ),
             ),
-            if (_errorMessage.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                _errorMessage,
-                style: const TextStyle(color: Colors.red),
-                textAlign: TextAlign.center,
-              ),
-            ],
-            const SizedBox(height: 16),
-            if (_isBiometricAvailable) ...[
-              CheckboxListTile(
-                title: const Text('Habilitar login com biometria'),
-                value: _isBiometricEnabled,
-                onChanged: _toggleBiometric,
-              ),
-              if (_isBiometricEnabled && _hasCredentials) ...[
-                const SizedBox(height: 8),
-                Center(
-                  child: IconButton(
-                    icon: const Icon(Icons.fingerprint, size: 40),
-                    onPressed: _authenticateWithBiometrics,
-                  ),
-                ),
-              ],
-            ],
-            const SizedBox(height: 16),
-            _isLoading
-                ? const Center(child: CircularProgressIndicator())
-                : ElevatedButton(
-                    onPressed: () => _handleLogin(),
-                    style: ElevatedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
-                    ),
-                    child: Text(appLocalizations.translate('login_button')),
-                  ),
           ],
         ),
       ),
