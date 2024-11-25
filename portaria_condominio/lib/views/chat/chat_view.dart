@@ -123,7 +123,8 @@ class _ChatViewState extends State<ChatView> {
                                       mainAxisSize: MainAxisSize.min,
                                       children: [
                                         Text(
-                                          DateFormat('HH:mm').format(message.timestamp),
+                                          DateFormat('HH:mm')
+                                              .format(message.timestamp),
                                           style: TextStyle(
                                             color: isSentByUser
                                                 ? Colors.white70
@@ -136,11 +137,13 @@ class _ChatViewState extends State<ChatView> {
                                           Icon(
                                             message.status == MessageStatus.sent
                                                 ? Icons.check
-                                                : message.status == MessageStatus.delivered
+                                                : message.status ==
+                                                        MessageStatus.delivered
                                                     ? Icons.done_all
                                                     : Icons.done_all,
                                             size: 16,
-                                            color: message.status == MessageStatus.read
+                                            color: message.status ==
+                                                    MessageStatus.read
                                                 ? Colors.blue[100]
                                                 : Colors.white70,
                                           ),
@@ -185,10 +188,11 @@ class _ChatViewState extends State<ChatView> {
         : '${receiverId}_$userId';
   }
 
-  void _updateMessageStatus(List<Message> messages, String userId, String receiverId) {
+  void _updateMessageStatus(
+      List<Message> messages, String userId, String receiverId) {
     // Se houver mensagens não entregues, marca como entregues
     chatController.markAllAsDelivered(userId, receiverId);
-    
+
     // Se o chat estiver aberto, marca como lidas
     if (mounted) {
       chatController.markAllAsRead(userId, receiverId);

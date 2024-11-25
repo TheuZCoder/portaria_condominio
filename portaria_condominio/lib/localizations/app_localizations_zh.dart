@@ -103,6 +103,28 @@ class AppLocalizationsZh {
     'add': '添加',
     'confirm': '确认',
     
+    // QR Code
+    'generate_qr_code': '生成二维码',
+    'view_qr_code': '查看二维码',
+    'qr_code_title': '访问二维码',
+    'qr_code_reader': '二维码扫描器',
+    'scan_qr_code': '扫描二维码',
+    'qr_code_success': '二维码扫描成功',
+    'qr_code_error': '二维码扫描错误',
+    'invalid_qr_code': '无效的二维码',
+    'house_number': '房屋号码',
+    
+    // Notifications
+    'send_notification': '发送通知',
+    'new_notification': '通知管理',
+    'notification_sent': '通知发送成功！',
+    'no_notifications': '没有通知',
+    'error': '错误',
+    'mark_as_read': '标记为已读',
+    'mark_as_unread': '标记为未读',
+    'read': '已读',
+    'unread': '未读',
+    
     // Others
     'no_results_found': '未找到结果',
     'menu': '菜单',

@@ -225,7 +225,7 @@ class HomeView extends StatelessWidget {
                   if (userRole == 'admin')
                     _menuItem(
                       context,
-                      'Cadastro de Notificações',
+                      localizations.translate('new_notification'),
                       Icons.notification_add,
                       '/notificacoesAdmin',
                       configController,

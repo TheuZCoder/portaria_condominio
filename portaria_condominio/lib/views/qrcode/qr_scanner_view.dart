@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:mobile_scanner/mobile_scanner.dart';
 import 'package:portaria_condominio/controllers/visita_controller.dart';
 import 'package:provider/provider.dart';
+import '../../localizations/app_localizations.dart';
 
 class QRScannerView extends StatefulWidget {
   const QRScannerView({Key? key}) : super(key: key);
@@ -16,9 +17,11 @@ class _QRScannerViewState extends State<QRScannerView> {
 
   @override
   Widget build(BuildContext context) {
+    final localizations = AppLocalizations.of(context);
+    
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Leitor QR Code'),
+        title: Text(localizations.translate('qr_code_reader')),
         actions: [
           IconButton(
             icon: ValueListenableBuilder(
@@ -82,26 +85,27 @@ class _QRScannerViewState extends State<QRScannerView> {
     try {
       final visitaController = Provider.of<VisitaController>(context, listen: false);
       final success = await visitaController.processarQRCodeVisita(code);
+      final localizations = AppLocalizations.of(context);
 
       if (!mounted) return;
 
       if (success) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Visita liberada com sucesso!'),
+          SnackBar(
+            content: Text(localizations.translate('qr_code_success')),
             backgroundColor: Colors.green,
             behavior: SnackBarBehavior.floating,
-            margin: EdgeInsets.all(16),
+            margin: const EdgeInsets.all(16),
           ),
         );
         Navigator.of(context).pop();
       } else {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('QR Code inválido ou visita não encontrada'),
+          SnackBar(
+            content: Text(localizations.translate('invalid_qr_code')),
             backgroundColor: Colors.red,
             behavior: SnackBarBehavior.floating,
-            margin: EdgeInsets.all(16),
+            margin: const EdgeInsets.all(16),
           ),
         );
       }
@@ -109,7 +113,7 @@ class _QRScannerViewState extends State<QRScannerView> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('Erro ao processar QR Code: $e'),
+          content: Text(AppLocalizations.of(context)!.translate('qr_code_error')),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.all(16),

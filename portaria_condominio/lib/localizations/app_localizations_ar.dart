@@ -60,6 +60,12 @@ class AppLocalizationsAr {
     'notifications': 'الإشعارات',
     'map': 'الخريطة',
     'chat': 'المحادثة',
+    'chats': 'المحادثات',
+    'chat_list': 'قائمة المحادثات',
+    'new_chat': 'محادثة جديدة',
+    'no_chats': 'لا توجد محادثات',
+    'send_message': 'إرسال رسالة',
+    'type_message': 'اكتب رسالة...',
     
     // Map features
     'map_title': 'الخريطة',
@@ -109,5 +115,40 @@ class AppLocalizationsAr {
     'profile': 'الملف الشخصي',
     'security': 'الأمان',
     'about': 'حول',
+    'email_invalid': 'البريد الإلكتروني غير صالح',
+    'cpf_invalid': 'رقم الهوية غير صالح',
+    'phone_invalid': 'رقم الهاتف غير صالح',
+    'required_field': 'هذا الحقل مطلوب',
+    'invalid_field': 'هذا الحقل غير صالح',
+    
+    // QR Code
+    'generate_qr_code': 'إنشاء رمز QR',
+    'view_qr_code': 'عرض رمز QR',
+    'qr_code_title': 'رمز QR للوصول',
+    'qr_code_reader': 'قارئ رمز QR',
+    'scan_qr_code': 'مسح رمز QR',
+    'qr_code_success': 'تم قراءة رمز QR بنجاح',
+    'qr_code_error': 'خطأ في قراءة رمز QR',
+    'invalid_qr_code': 'رمز QR غير صالح',
+    'house_number': 'رقم المنزل',
+    
+    // Notifications
+    'send_notification': 'إرسال إشعار',
+    'new_notification': 'تسجيل الإشعارات',
+    'notification_sent': 'تم إرسال الإشعار بنجاح!',
+    'no_notifications': 'لا توجد إشعارات',
+    'error': 'خطأ',
+    'mark_as_read': 'تحديد كمقروء',
+    'mark_as_unread': 'تحديد كغير مقروء',
+    'read': 'مقروء',
+    'unread': 'غير مقروء',
+    
+    // Loading and errors
+    'loading_data': 'جار تحميل البيانات...',
+    'error_loading_data': 'خطأ في تحميل البيانات: {error}',
+    'error_saving_data': 'خطأ في حفظ البيانات: {error}',
+    'success': 'نجاح',
+    'warning': 'تحذير',
+    'info': 'معلومات',
   };
 }
