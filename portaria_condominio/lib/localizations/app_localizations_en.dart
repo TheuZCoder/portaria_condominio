@@ -178,6 +178,13 @@ class AppLocalizationsEn {
     'chat_no_residents': 'No residents found',
     'chat_no_providers': 'No service providers found',
     
+    // QR Code
+    'generate_qr_code': 'Generate QR Code',
+    'view_qr_code': 'View QR Code',
+    'qr_code_title': 'Access QR Code',
+    'house_number': 'House Number',
+    'visitor': 'Visitor',
+    
     // Others
     'no_results_found': 'No results found',
     'menu': 'Menu',

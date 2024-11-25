@@ -155,107 +155,153 @@ class _ChatListViewState extends State<ChatListView> {
 
     showModalBottomSheet(
       context: context,
+      backgroundColor: colorScheme.surfaceVariant.withOpacity(0.95),
       builder: (context) {
         return DefaultTabController(
           length: 2,
           child: Column(
             children: [
-              TabBar(
-                tabs: [
-                  Tab(text: localizations.translate('chat_select_residents')),
-                  Tab(text: localizations.translate('chat_select_providers')),
-                ],
+              Container(
+                color: colorScheme.primaryContainer,
+                child: TabBar(
+                  labelColor: colorScheme.onPrimaryContainer,
+                  unselectedLabelColor: colorScheme.onPrimaryContainer.withOpacity(0.6),
+                  indicatorColor: colorScheme.primary,
+                  tabs: [
+                    Tab(text: localizations.translate('chat_select_residents')),
+                    Tab(text: localizations.translate('chat_select_providers')),
+                  ],
+                ),
               ),
               Expanded(
-                child: TabBarView(
-                  children: [
-                    // Lista de Moradores
-                    FutureBuilder<List<Morador>>(
-                      future: moradorController.buscarTodosMoradores(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const Center(child: CircularProgressIndicator());
-                        }
-                        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return Center(
-                            child: Text(localizations.translate('chat_no_residents')),
-                          );
-                        }
-                        return ListView.builder(
-                          itemCount: snapshot.data!.length,
-                          itemBuilder: (context, index) {
-                            final morador = snapshot.data![index];
-                            return ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: colorScheme.primary,
-                                child: Text(
-                                  morador.nome[0].toUpperCase(),
-                                  style: TextStyle(color: colorScheme.onPrimary),
-                                ),
-                              ),
-                              title: Text(morador.nome),
-                              subtitle: Text(morador.endereco),
-                              onTap: () {
-                                Navigator.pop(context);
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ChatView(
-                                      receiverId: morador.id,
-                                      receiverName: morador.nome,
+                child: Container(
+                  color: colorScheme.surfaceVariant.withOpacity(0.3),
+                  child: TabBarView(
+                    children: [
+                      // Lista de Moradores
+                      FutureBuilder<List<Morador>>(
+                        future: moradorController.buscarTodosMoradores(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Center(child: CircularProgressIndicator());
+                          }
+                          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                            return Center(
+                              child: Text(localizations.translate('chat_no_residents')),
+                            );
+                          }
+                          return ListView.builder(
+                            itemCount: snapshot.data!.length,
+                            itemBuilder: (context, index) {
+                              final morador = snapshot.data![index];
+                              return Card(
+                                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                child: ListTile(
+                                  leading: CircleAvatar(
+                                    backgroundColor: colorScheme.primary,
+                                    child: Text(
+                                      morador.nome[0].toUpperCase(),
+                                      style: TextStyle(
+                                        color: colorScheme.onPrimary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
                                     ),
                                   ),
-                                );
-                              },
-                            );
-                          },
-                        );
-                      },
-                    ),
-                    // Lista de Prestadores
-                    FutureBuilder<List<Prestador>>(
-                      future: prestadorController.buscarTodosPrestadores(),
-                      builder: (context, snapshot) {
-                        if (snapshot.connectionState == ConnectionState.waiting) {
-                          return const Center(child: CircularProgressIndicator());
-                        }
-                        if (!snapshot.hasData || snapshot.data!.isEmpty) {
-                          return Center(
-                            child: Text(localizations.translate('chat_no_providers')),
-                          );
-                        }
-                        return ListView.builder(
-                          itemCount: snapshot.data!.length,
-                          itemBuilder: (context, index) {
-                            final prestador = snapshot.data![index];
-                            return ListTile(
-                              leading: CircleAvatar(
-                                backgroundColor: colorScheme.primary,
-                                child: Text(
-                                  prestador.nome[0].toUpperCase(),
-                                  style: TextStyle(color: colorScheme.onPrimary),
-                                ),
-                              ),
-                              title: Text(prestador.nome),
-                              subtitle: Text(prestador.empresa),
-                              onTap: () {
-                                Navigator.pop(context);
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(
-                                    builder: (context) => ChatView(
-                                      receiverId: prestador.id,
-                                      receiverName: prestador.nome,
+                                  title: Text(
+                                    morador.nome,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: colorScheme.onSurface,
                                     ),
                                   ),
-                                );
-                              },
+                                  subtitle: Text(
+                                    morador.endereco,
+                                    style: TextStyle(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  tileColor: colorScheme.surface,
+                                  onTap: () {
+                                    Navigator.pop(context);
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ChatView(
+                                          receiverId: morador.id,
+                                          receiverName: morador.nome,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                      // Lista de Prestadores
+                      FutureBuilder<List<Prestador>>(
+                        future: prestadorController.buscarTodosPrestadores(),
+                        builder: (context, snapshot) {
+                          if (snapshot.connectionState == ConnectionState.waiting) {
+                            return const Center(child: CircularProgressIndicator());
+                          }
+                          if (!snapshot.hasData || snapshot.data!.isEmpty) {
+                            return Center(
+                              child: Text(localizations.translate('chat_no_providers')),
                             );
-                          },
-                        );
-                      },
-                    ),
-                  ],
+                          }
+                          return ListView.builder(
+                            itemCount: snapshot.data!.length,
+                            itemBuilder: (context, index) {
+                              final prestador = snapshot.data![index];
+                              return Card(
+                                margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                                child: ListTile(
+                                  leading: CircleAvatar(
+                                    backgroundColor: colorScheme.secondary,
+                                    child: Text(
+                                      prestador.nome[0].toUpperCase(),
+                                      style: TextStyle(
+                                        color: colorScheme.onSecondary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ),
+                                  title: Text(
+                                    prestador.nome,
+                                    style: TextStyle(
+                                      fontWeight: FontWeight.bold,
+                                      color: colorScheme.onSurface,
+                                    ),
+                                  ),
+                                  subtitle: Text(
+                                    prestador.empresa,
+                                    style: TextStyle(
+                                      color: colorScheme.onSurfaceVariant,
+                                    ),
+                                  ),
+                                  tileColor: colorScheme.surface,
+                                  onTap: () {
+                                    Navigator.pop(context);
+                                    Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => ChatView(
+                                          receiverId: prestador.id,
+                                          receiverName: prestador.nome,
+                                        ),
+                                      ),
+                                    );
+                                  },
+                                ),
+                              );
+                            },
+                          );
+                        },
+                      ),
+                    ],
+                  ),
                 ),
               ),
             ],

@@ -9,6 +9,7 @@ import 'routes/app_routes.dart';
 import 'theme_provider.dart';
 import 'views/splash/splash_screen.dart';
 import 'services/notification_service.dart';
+import 'utils/page_transitions.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -42,7 +43,14 @@ class MyApp extends StatelessWidget {
         builder: (context, themeProvider, configController, child) {
           return MaterialApp(
             title: 'Gestão de Condomínio',
-            theme: themeProvider.currentTheme,
+            theme: themeProvider.currentTheme.copyWith(
+              pageTransitionsTheme: PageTransitionsTheme(
+                builders: {
+                  TargetPlatform.android: const CustomPageTransitionsBuilder(),
+                  TargetPlatform.iOS: const CupertinoPageTransitionsBuilder(),
+                },
+              ),
+            ),
             locale: configController.locale,
             supportedLocales: AppLocalizations.supportedLocales,
             debugShowCheckedModeBanner: false,

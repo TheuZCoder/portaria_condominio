@@ -64,11 +64,10 @@ class AppRoutes {
 
     if (name == chat && settings.arguments is Map<String, dynamic>) {
       final args = settings.arguments as Map<String, dynamic>;
-      final receiverId = args['id'] as String;
-      final receiverName = args['nome'] as String;
+      final receiverId = args['otherUserId'] as String;
+      final receiverName = args['userName'] as String? ?? 'Usuário';
       return MaterialPageRoute(
         builder: (_) => ChatView(
-          // currentUserId: currentUserId!,
           receiverId: receiverId,
           receiverName: receiverName,
         ),

@@ -4,6 +4,7 @@ import '../../models/visita_model.dart';
 import '../../localizations/app_localizations.dart';
 import '../../controllers/morador_controller.dart';
 import '../../models/morador_model.dart';
+import '../../views/home/qr_code_generator_view.dart';
 
 class VisitasView extends StatefulWidget {
   const VisitasView({super.key});
@@ -251,7 +252,7 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
                                 const SizedBox(height: 8),
                                 _buildInfoRow(localizations.translate('expected_time'), visita.horaPrevista, colorScheme),
                                 const SizedBox(height: 8),
-                                _buildInfoRow(localizations.translate('address'), visita.apartamento, colorScheme),
+                                _buildInfoRow(localizations.translate('house_number'), visita.apartamento, colorScheme),
                                 const SizedBox(height: 8),
                                 _buildInfoRow(localizations.translate('observations'), visita.observacoes, colorScheme),
                                 const SizedBox(height: 16),
@@ -335,38 +336,56 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
             ),
           )
         else
-          ElevatedButton.icon(
-            onPressed: () async {
-              try {
-                await _controller.revogarEntrada(visita.id);
-                setState(() {
-                  _futureVisitas = _controller.buscarTodasVisitas();
-                });
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(localizations.translate('entry_revoked')),
-                      backgroundColor: Colors.orange,
+          Row(
+            children: [
+              ElevatedButton.icon(
+                onPressed: () async {
+                  try {
+                    await _controller.revogarEntrada(visita.id);
+                    setState(() {
+                      _futureVisitas = _controller.buscarTodasVisitas();
+                    });
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(localizations.translate('entry_revoked')),
+                          backgroundColor: Colors.orange,
+                        ),
+                      );
+                    }
+                  } catch (e) {
+                    if (mounted) {
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(
+                          content: Text(localizations.translate('error_revoking_entry')),
+                          backgroundColor: colorScheme.error,
+                        ),
+                      );
+                    }
+                  }
+                },
+                icon: const Icon(Icons.cancel),
+                label: Text(localizations.translate('revoke_entry')),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: Colors.orange,
+                  foregroundColor: Colors.white,
+                ),
+              ),
+              const SizedBox(width: 8),
+              IconButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => QrCodeView(visita: visita),
                     ),
                   );
-                }
-              } catch (e) {
-                if (mounted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text(localizations.translate('error_revoking_entry')),
-                      backgroundColor: colorScheme.error,
-                    ),
-                  );
-                }
-              }
-            },
-            icon: const Icon(Icons.cancel),
-            label: Text(localizations.translate('revoke_entry')),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.orange,
-              foregroundColor: Colors.white,
-            ),
+                },
+                icon: const Icon(Icons.qr_code),
+                color: colorScheme.primary,
+                tooltip: localizations.translate('generate_qr_code'),
+              ),
+            ],
           ),
         IconButton(
           onPressed: () {

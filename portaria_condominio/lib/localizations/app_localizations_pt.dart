@@ -193,6 +193,13 @@ class AppLocalizationsPt {
     'chat_no_residents': 'Nenhum morador encontrado',
     'chat_no_providers': 'Nenhum prestador encontrado',
     
+    // QR Code
+    'generate_qr_code': 'Gerar QR Code',
+    'view_qr_code': 'Visualizar QR Code',
+    'qr_code_title': 'QR Code de Acesso',
+    'house_number': 'Número da Casa',
+    'visitor': 'Visitante',
+    
     // Others
     'no_results_found': 'Nenhum resultado encontrado',
     'menu': 'Menu',

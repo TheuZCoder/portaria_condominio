@@ -58,10 +58,12 @@ class _MapaViewState extends State<MapaView> {
   Future<void> _loadMoradores() async {
     try {
       final moradores = await _moradorController.buscarTodosMoradores();
+      if (!mounted) return;
       setState(() {
         _moradores = moradores;
       });
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao carregar moradores: $e')),
       );
@@ -87,11 +89,14 @@ class _MapaViewState extends State<MapaView> {
       }
 
       final locationData = await _locationService.getLocation();
+      if (!mounted) return;
+      
       setState(() {
         _userLocation = LatLng(locationData.latitude!, locationData.longitude!);
       });
       _mapController.move(_userLocation!, 15);
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao obter localização: $e')),
       );
@@ -101,6 +106,8 @@ class _MapaViewState extends State<MapaView> {
   Future<void> _searchAddress(String address) async {
     try {
       final locations = await locationFromAddress(address);
+      if (!mounted) return;
+      
       if (locations.isNotEmpty) {
         final location = locations.first;
         _destination = LatLng(location.latitude, location.longitude);
@@ -110,14 +117,15 @@ class _MapaViewState extends State<MapaView> {
           final route =
               await routingService.getRoute(_userLocation!, _destination!);
 
+          if (!mounted) return;
           setState(() {
-            _routePoints =
-                route; // Atualiza os pontos da rota com os dados da API
+            _routePoints = route;
           });
           _mapController.move(_destination!, 15);
         }
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao buscar endereço: $e')),
       );
@@ -260,6 +268,7 @@ class _MapaViewState extends State<MapaView> {
         _mapController.move(_destination!, 18); // Move o mapa para o endereço
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao buscar localização: $e')),
       );
@@ -285,6 +294,7 @@ class _MapaViewState extends State<MapaView> {
         }
       }
     } catch (e) {
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(content: Text('Erro ao iniciar rota: $e')),
       );
