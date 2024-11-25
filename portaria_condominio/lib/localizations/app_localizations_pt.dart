@@ -199,6 +199,11 @@ class AppLocalizationsPt {
     'qr_code_title': 'QR Code de Acesso',
     'house_number': 'Número da Casa',
     'visitor': 'Visitante',
+    'qr_code_reader': 'Leitor QR Code',
+    'scan_qr_code': 'Escanear QR Code',
+    'qr_code_success': 'QR Code lido com sucesso',
+    'qr_code_error': 'Erro ao ler QR Code',
+    'invalid_qr_code': 'QR Code inválido',
     
     // Others
     'no_results_found': 'Nenhum resultado encontrado',

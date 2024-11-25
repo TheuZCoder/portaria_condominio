@@ -230,6 +230,14 @@ class HomeView extends StatelessWidget {
                       '/notificacoesAdmin',
                       configController,
                     ),
+                  if (userRole == 'admin' || userRole == 'portaria')
+                    _menuItem(
+                      context,
+                      localizations.translate('qr_code_reader'),
+                      Icons.qr_code_scanner,
+                      '/qr-scanner',
+                      configController,
+                    ),
                   _menuItem(
                     context,
                     localizations.translate('map'),

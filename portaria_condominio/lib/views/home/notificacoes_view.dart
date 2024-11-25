@@ -123,11 +123,10 @@ class _NotificationsViewState extends State<NotificationsView> with TickerProvid
                                           ),
                                           backgroundColor: colorScheme.secondaryContainer,
                                           behavior: SnackBarBehavior.floating,
-                                          width: 400,
                                           shape: RoundedRectangleBorder(
                                             borderRadius: BorderRadius.circular(8),
                                           ),
-                                          margin: const EdgeInsets.all(16),
+                                          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                           duration: const Duration(seconds: 2),
                                         ),
                                       );
@@ -157,11 +156,10 @@ class _NotificationsViewState extends State<NotificationsView> with TickerProvid
                                           ),
                                           backgroundColor: colorScheme.errorContainer,
                                           behavior: SnackBarBehavior.floating,
-                                          width: 400,
                                           shape: RoundedRectangleBorder(
                                             borderRadius: BorderRadius.circular(8),
                                           ),
-                                          margin: const EdgeInsets.all(16),
+                                          margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                                           duration: const Duration(seconds: 4),
                                         ),
                                       );
@@ -279,11 +277,10 @@ class _NotificationsViewState extends State<NotificationsView> with TickerProvid
             ),
             backgroundColor: colorScheme.primaryContainer,
             behavior: SnackBarBehavior.floating,
-            width: 400,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
-            margin: const EdgeInsets.all(16),
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             duration: const Duration(seconds: 2),
           ),
         );
@@ -313,11 +310,10 @@ class _NotificationsViewState extends State<NotificationsView> with TickerProvid
             ),
             backgroundColor: colorScheme.errorContainer,
             behavior: SnackBarBehavior.floating,
-            width: 400,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(8),
             ),
-            margin: const EdgeInsets.all(16),
+            margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             duration: const Duration(seconds: 4),
           ),
         );

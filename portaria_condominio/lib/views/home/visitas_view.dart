@@ -93,6 +93,16 @@ class _VisitasViewState extends State<VisitasView> with TickerProviderStateMixin
     return Scaffold(
       appBar: AppBar(
         title: Text(localizations.translate('visits')),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.qr_code_scanner),
+            onPressed: () => Navigator.pushNamed(context, '/qr-scanner'),
+          ),
+          IconButton(
+            icon: const Icon(Icons.add),
+            onPressed: () => _mostrarDialogCadastro(),
+          ),
+        ],
       ),
       floatingActionButton: FloatingActionButton.extended(
         onPressed: () {

@@ -90,4 +90,33 @@ class VisitaController {
       throw Exception('Erro ao buscar visitas por liberação: $e');
     }
   }
+
+  /// **UPDATE** - Processar o QR Code da visita
+  Future<bool> processarQRCodeVisita(String qrCode) async {
+    try {
+      // Decodifica o QR Code para obter o ID da visita
+      final visitaId = qrCode.trim();
+      
+      // Busca a visita no Firestore
+      final visitaDoc = await _visitasCollection.doc(visitaId).get();
+      
+      if (!visitaDoc.exists) {
+        return false;
+      }
+
+      // Atualiza o status da visita para "liberada"
+      await _visitasCollection.doc(visitaId).update({
+        'status': 'liberada',
+        'dataHoraLiberacao': DateTime.now().toIso8601String(),
+      });
+
+      // Notifica os ouvintes sobre a mudança
+      // notifyListeners(); // Este método não existe na classe VisitaController
+      
+      return true;
+    } catch (e) {
+      print('Erro ao processar QR Code: $e');
+      return false;
+    }
+  }
 }
