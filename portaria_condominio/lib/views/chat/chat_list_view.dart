@@ -155,7 +155,7 @@ class _ChatListViewState extends State<ChatListView> {
 
     showModalBottomSheet(
       context: context,
-      backgroundColor: colorScheme.surfaceVariant.withOpacity(0.95),
+      backgroundColor: colorScheme.surfaceContainerHighest.withOpacity(0.95),
       builder: (context) {
         return DefaultTabController(
           length: 2,
@@ -175,7 +175,7 @@ class _ChatListViewState extends State<ChatListView> {
               ),
               Expanded(
                 child: Container(
-                  color: colorScheme.surfaceVariant.withOpacity(0.3),
+                  color: colorScheme.surfaceContainerHighest.withOpacity(0.3),
                   child: TabBarView(
                     children: [
                       // Lista de Moradores

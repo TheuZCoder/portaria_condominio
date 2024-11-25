@@ -9,7 +9,7 @@ import 'dart:convert';
 class QrCodeView extends StatelessWidget {
   final Visita visita;
   
-  const QrCodeView({Key? key, required this.visita}) : super(key: key);
+  const QrCodeView({super.key, required this.visita});
 
   String _gerarCodigoAcesso() {
     // Cria um mapa com os dados relevantes da visita

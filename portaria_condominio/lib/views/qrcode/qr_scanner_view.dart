@@ -5,7 +5,7 @@ import 'package:provider/provider.dart';
 import '../../localizations/app_localizations.dart';
 
 class QRScannerView extends StatefulWidget {
-  const QRScannerView({Key? key}) : super(key: key);
+  const QRScannerView({super.key});
 
   @override
   State<QRScannerView> createState() => _QRScannerViewState();
@@ -113,7 +113,7 @@ class _QRScannerViewState extends State<QRScannerView> {
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text(AppLocalizations.of(context)!.translate('qr_code_error')),
+          content: Text(AppLocalizations.of(context).translate('qr_code_error')),
           backgroundColor: Colors.red,
           behavior: SnackBarBehavior.floating,
           margin: const EdgeInsets.all(16),

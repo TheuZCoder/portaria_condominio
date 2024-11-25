@@ -44,10 +44,10 @@ class MyApp extends StatelessWidget {
           return MaterialApp(
             title: 'Gestão de Condomínio',
             theme: themeProvider.currentTheme.copyWith(
-              pageTransitionsTheme: PageTransitionsTheme(
+              pageTransitionsTheme: const PageTransitionsTheme(
                 builders: {
-                  TargetPlatform.android: const CustomPageTransitionsBuilder(),
-                  TargetPlatform.iOS: const CupertinoPageTransitionsBuilder(),
+                  TargetPlatform.android: CustomPageTransitionsBuilder(),
+                  TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
                 },
               ),
             ),

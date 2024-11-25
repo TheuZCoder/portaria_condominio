@@ -67,17 +67,29 @@ class NotificationService {
   Future<void> _saveTokenToFirestore(String token) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      await _firestore.collection('users').doc(user.uid).update({
-        'fcmToken': token,
-        'lastTokenUpdate': FieldValue.serverTimestamp(),
-      });
+      final userDoc = _firestore.collection('users').doc(user.uid);
+      final docSnapshot = await userDoc.get();
+
+      if (docSnapshot.exists) {
+        await userDoc.update({
+          'fcmToken': token,
+          'lastTokenUpdate': FieldValue.serverTimestamp(),
+        });
+      } else {
+        await userDoc.set({
+          'fcmToken': token,
+          'lastTokenUpdate': FieldValue.serverTimestamp(),
+          'userId': user.uid,
+          'createdAt': FieldValue.serverTimestamp(),
+        });
+      }
       debugPrint('FCM Token saved: $token');
     }
   }
 
   Future<void> _handleForegroundMessage(RemoteMessage message) async {
     debugPrint('Received foreground message: ${message.messageId}');
-    
+
     RemoteNotification? notification = message.notification;
     AndroidNotification? android = message.notification?.android;
 
