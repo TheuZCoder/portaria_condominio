@@ -74,6 +74,7 @@ class AppLocalizationsAr {
     // Residents
     'no_residents_found': 'لم يتم العثور على مقيمين',
     'user_role': 'ساكن',
+    'user': 'مستخدم',
     'cpf': 'رقم التعريف الشخصي',
     'phone': 'هاتف',
     'call': 'اتصال',

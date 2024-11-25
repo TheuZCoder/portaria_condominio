@@ -29,6 +29,19 @@ class HomeView extends StatelessWidget {
     return 'unknown';
   }
 
+  /// Obtém os dados do usuário do Firestore
+  Future<Map<String, dynamic>?> _getUserData() async {
+    final user = FirebaseAuth.instance.currentUser;
+    if (user == null) return null;
+
+    final doc = await FirebaseFirestore.instance
+        .collection('moradores')
+        .doc(user.uid)
+        .get();
+
+    return doc.data();
+  }
+
   /// Widget de menu item
   Widget _menuItem(
     BuildContext context,
@@ -88,6 +101,113 @@ class HomeView extends StatelessWidget {
     );
   }
 
+  Widget _buildProfileCard(BuildContext context, ConfiguracoesController configController) {
+    final theme = Theme.of(context);
+    final scaffoldKey = Scaffold.of(context);
+    
+    return FutureBuilder<Map<String, dynamic>?>(
+      future: _getUserData(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return const Padding(
+            padding: EdgeInsets.symmetric(vertical: 16),
+            child: Center(child: CircularProgressIndicator()),
+          );
+        }
+
+        final userData = snapshot.data;
+        final user = FirebaseAuth.instance.currentUser;
+        final userName = userData?['nome'] ?? user?.displayName ?? AppLocalizations.of(context).translate('user');
+        final userEmail = userData?['email'] ?? user?.email ?? '';
+        final apartment = userData?['apartamento'] ?? '';
+
+        return Padding(
+          padding: const EdgeInsets.only(top: 16, bottom: 16),
+          child: Card(
+            elevation: 8,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+            ),
+            child: Container(
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(16),
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: [
+                    theme.colorScheme.primary,
+                    theme.colorScheme.primary.withOpacity(0.8),
+                  ],
+                ),
+              ),
+              child: Padding(
+                padding: const EdgeInsets.all(16),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    CircleAvatar(
+                      radius: 35,
+                      backgroundColor: theme.colorScheme.onPrimary,
+                      child: Text(
+                        userName.isNotEmpty ? userName[0].toUpperCase() : '?',
+                        style: TextStyle(
+                          fontSize: 28,
+                          fontWeight: FontWeight.bold,
+                          color: theme.colorScheme.primary,
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 16),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            userName,
+                            style: TextStyle(
+                              fontSize: 20,
+                              color: theme.colorScheme.onPrimary,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                          if (apartment.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Text(
+                              '${AppLocalizations.of(context).translate('apartment')}: $apartment',
+                              style: TextStyle(
+                                fontSize: 16,
+                                color: theme.colorScheme.onPrimary.withOpacity(0.9),
+                              ),
+                            ),
+                          ],
+                          const SizedBox(height: 4),
+                          Text(
+                            userEmail,
+                            style: TextStyle(
+                              fontSize: 16,
+                              color: theme.colorScheme.onPrimary.withOpacity(0.9),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                    IconButton(
+                      icon: Icon(Icons.menu, color: theme.colorScheme.onPrimary),
+                      onPressed: () {
+                        scaffoldKey.openDrawer();
+                      },
+                      tooltip: AppLocalizations.of(context).translate('menu'),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final configController = Provider.of<ConfiguracoesController>(context);
@@ -96,16 +216,6 @@ class HomeView extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      appBar: AppBar(
-        title: Text(localizations.translate('home_title')),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.chat),
-            onPressed: () => Navigator.pushNamed(context, AppRoutes.chatList),
-            tooltip: localizations.translate('chats'),
-          ),
-        ],
-      ),
       drawer: Drawer(
         child: Column(
           children: [
@@ -152,111 +262,114 @@ class HomeView extends StatelessWidget {
           ],
         ),
       ),
-      body: StreamBuilder<int>(
-        stream: notificationController.getUnreadNotificationCount(),
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: SafeArea(
+        child: StreamBuilder<int>(
+          stream: notificationController.getUnreadNotificationCount(),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(child: CircularProgressIndicator());
+            }
 
-          if (snapshot.hasError) {
-            return Center(
-                child: Text(localizations.translate('error_fetching_data')));
-          }
+            if (snapshot.hasError) {
+              return Center(
+                  child: Text(localizations.translate('error_fetching_data')));
+            }
 
-          final notificationCount = snapshot.data ?? 0;
+            final notificationCount = snapshot.data ?? 0;
 
-          return FutureBuilder<String>(
-            future: _getUserRole(),
-            builder: (context, roleSnapshot) {
-              if (roleSnapshot.connectionState == ConnectionState.waiting) {
-                return const Center(child: CircularProgressIndicator());
-              }
+            return FutureBuilder<String>(
+              future: _getUserRole(),
+              builder: (context, roleSnapshot) {
+                if (roleSnapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-              if (roleSnapshot.hasError) {
-                return Center(
-                    child: Text(localizations.translate('error_fetching_role')));
-              }
+                if (roleSnapshot.hasError) {
+                  return Center(
+                      child: Text(localizations.translate('error_fetching_role')));
+                }
 
-              final userRole = roleSnapshot.data ?? 'unknown';
+                final userRole = roleSnapshot.data ?? 'unknown';
 
-              return ListView(
-                padding: const EdgeInsets.all(16),
-                children: [
-                  if (userRole == 'admin' || userRole == 'portaria')
+                return ListView(
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  children: [
+                    _buildProfileCard(context, configController),
+                    if (userRole == 'admin' || userRole == 'portaria')
+                      _menuItem(
+                        context,
+                        localizations.translate('residents'),
+                        Icons.people,
+                        '/moradores',
+                        configController,
+                      ),
+                    if (userRole != 'visitor')
+                      _menuItem(
+                        context,
+                        localizations.translate('providers'),
+                        Icons.work,
+                        '/prestadores',
+                        configController,
+                      ),
+                    if (userRole != 'visitor')
+                      _menuItem(
+                        context,
+                        localizations.translate('visits'),
+                        Icons.person_add,
+                        '/visitas',
+                        configController,
+                      ),
                     _menuItem(
                       context,
-                      localizations.translate('residents'),
-                      Icons.people,
-                      '/moradores',
+                      localizations.translate('orders'),
+                      Icons.shopping_cart,
+                      '/pedidos',
                       configController,
                     ),
-                  if (userRole != 'visitor')
                     _menuItem(
                       context,
-                      localizations.translate('providers'),
-                      Icons.work,
-                      '/prestadores',
+                      localizations.translate('notifications'),
+                      Icons.notifications,
+                      '/notificacoes',
                       configController,
+                      notificationCount: notificationCount,
                     ),
-                  if (userRole != 'visitor')
                     _menuItem(
                       context,
-                      localizations.translate('visits'),
-                      Icons.person_add,
-                      '/visitas',
+                      localizations.translate('chats'),
+                      Icons.chat,
+                      AppRoutes.chatList,
                       configController,
                     ),
-                  _menuItem(
-                    context,
-                    localizations.translate('orders'),
-                    Icons.shopping_cart,
-                    '/pedidos',
-                    configController,
-                  ),
-                  _menuItem(
-                    context,
-                    localizations.translate('notifications'),
-                    Icons.notifications,
-                    '/notificacoes',
-                    configController,
-                    notificationCount: notificationCount,
-                  ),
-                  if (userRole == 'admin')
+                    if (userRole == 'admin')
+                      _menuItem(
+                        context,
+                        localizations.translate('new_notification'),
+                        Icons.notification_add,
+                        '/notificacoesAdmin',
+                        configController,
+                      ),
+                    if (userRole == 'admin' || userRole == 'portaria')
+                      _menuItem(
+                        context,
+                        localizations.translate('qr_code_reader'),
+                        Icons.qr_code_scanner,
+                        '/qr-scanner',
+                        configController,
+                      ),
                     _menuItem(
                       context,
-                      localizations.translate('new_notification'),
-                      Icons.notification_add,
-                      '/notificacoesAdmin',
+                      localizations.translate('map'),
+                      Icons.map,
+                      '/mapa',
                       configController,
                     ),
-                  if (userRole == 'admin' || userRole == 'portaria')
-                    _menuItem(
-                      context,
-                      localizations.translate('qr_code_reader'),
-                      Icons.qr_code_scanner,
-                      '/qr-scanner',
-                      configController,
-                    ),
-                  _menuItem(
-                    context,
-                    localizations.translate('map'),
-                    Icons.map,
-                    '/mapa',
-                    configController,
-                  ),
-                  _menuItem(
-                    context,
-                    localizations.translate('chats'),
-                    Icons.chat,
-                    AppRoutes.chatList,
-                    configController,
-                  ),
-                ],
-              );
-            },
-          );
-        },
+                  ],
+                );
+              },
+            );
+          },
+        ),
       ),
     );
   }
