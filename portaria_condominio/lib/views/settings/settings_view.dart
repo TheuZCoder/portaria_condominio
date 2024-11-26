@@ -4,6 +4,7 @@ import '../../controllers/configuracoes_controller.dart';
 import '../../localizations/app_localizations.dart';
 import '../../themes/app_theme.dart';
 import '../../theme_provider.dart';
+import '../../routes/app_routes.dart';
 
 class SettingsView extends StatelessWidget {
   const SettingsView({super.key});
@@ -112,6 +113,53 @@ class SettingsView extends StatelessWidget {
               themeProvider.setThemePreset(ThemePreset.defaultLight);
             },
           ),
+
+          const Divider(),
+
+          // Botão de Logout
+          ListTile(
+            leading: Icon(Icons.logout, color: colorScheme.error),
+            title: Text(
+              localizations.translate('logout'),
+              style: TextStyle(
+                color: colorScheme.error,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+            onTap: () {
+              showDialog(
+                context: context,
+                builder: (BuildContext context) {
+                  return AlertDialog(
+                    title: Text(localizations.translate('logout_confirmation')),
+                    content: Text(localizations.translate('logout_message')),
+                    actions: <Widget>[
+                      TextButton(
+                        child: Text(localizations.translate('cancel')),
+                        onPressed: () => Navigator.of(context).pop(),
+                      ),
+                      TextButton(
+                        child: Text(
+                          localizations.translate('logout'),
+                          style: TextStyle(color: colorScheme.error),
+                        ),
+                        onPressed: () {
+                          Navigator.of(context).pop();
+                          Navigator.pushNamedAndRemoveUntil(
+                            context,
+                            AppRoutes.login,
+                            (route) => false,
+                          );
+                        },
+                      ),
+                    ],
+                  );
+                },
+              );
+            },
+          ),
+
+          const SizedBox(height: 16), // Espaço adicional no final da lista
         ],
       ),
     );

@@ -52,7 +52,7 @@ class HomeView extends StatelessWidget {
     int notificationCount = 0,
   }) {
     final colorScheme = Theme.of(context).colorScheme;
-    
+
     return GestureDetector(
       onTap: () => Navigator.pushNamed(context, route),
       child: Card(
@@ -101,10 +101,10 @@ class HomeView extends StatelessWidget {
     );
   }
 
-  Widget _buildProfileCard(BuildContext context, ConfiguracoesController configController) {
+  Widget _buildProfileCard(
+      BuildContext context, ConfiguracoesController configController) {
     final theme = Theme.of(context);
-    final scaffoldKey = Scaffold.of(context);
-    
+
     return FutureBuilder<Map<String, dynamic>?>(
       future: _getUserData(),
       builder: (context, snapshot) {
@@ -117,91 +117,135 @@ class HomeView extends StatelessWidget {
 
         final userData = snapshot.data;
         final user = FirebaseAuth.instance.currentUser;
-        final userName = userData?['nome'] ?? user?.displayName ?? AppLocalizations.of(context).translate('user');
+        final userName = userData?['nome'] ??
+            user?.displayName ??
+            AppLocalizations.of(context).translate('user');
         final userEmail = userData?['email'] ?? user?.email ?? '';
         final apartment = userData?['apartamento'] ?? '';
 
-        return Padding(
-          padding: const EdgeInsets.only(top: 16, bottom: 16),
-          child: Card(
-            elevation: 8,
+        return Card(
+          elevation: 0,
+          color: theme.colorScheme.primary,
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: ExpansionTile(
             shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
+              borderRadius: BorderRadius.circular(12),
             ),
-            child: Container(
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(16),
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: [
-                    theme.colorScheme.primary,
-                    theme.colorScheme.primary.withOpacity(0.8),
-                  ],
+            collapsedShape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(12),
+            ),
+            backgroundColor: theme.colorScheme.primary,
+            collapsedBackgroundColor: theme.colorScheme.primary,
+            tilePadding: const EdgeInsets.all(16.0),
+            title: Row(
+              children: [
+                CircleAvatar(
+                  radius: 30,
+                  backgroundColor: theme.colorScheme.onPrimary,
+                  child: Text(
+                    userName[0].toUpperCase(),
+                    style: TextStyle(color: theme.colorScheme.primary),
+                  ),
                 ),
-              ),
-              child: Padding(
-                padding: const EdgeInsets.all(16),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    CircleAvatar(
-                      radius: 35,
-                      backgroundColor: theme.colorScheme.onPrimary,
-                      child: Text(
-                        userName.isNotEmpty ? userName[0].toUpperCase() : '?',
-                        style: TextStyle(
-                          fontSize: 28,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        userName,
+                        style: theme.textTheme.titleMedium?.copyWith(
                           fontWeight: FontWeight.bold,
-                          color: theme.colorScheme.primary,
+                          color: theme.colorScheme.onPrimary,
                         ),
                       ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            userName,
-                            style: TextStyle(
-                              fontSize: 20,
-                              color: theme.colorScheme.onPrimary,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                          if (apartment.isNotEmpty) ...[
-                            const SizedBox(height: 4),
-                            Text(
-                              '${AppLocalizations.of(context).translate('apartment')}: $apartment',
-                              style: TextStyle(
-                                fontSize: 16,
-                                color: theme.colorScheme.onPrimary.withOpacity(0.9),
-                              ),
-                            ),
-                          ],
-                          const SizedBox(height: 4),
-                          Text(
-                            userEmail,
-                            style: TextStyle(
-                              fontSize: 16,
-                              color: theme.colorScheme.onPrimary.withOpacity(0.9),
-                            ),
-                          ),
-                        ],
+                      const SizedBox(height: 4),
+                      Text(
+                        userEmail,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onPrimary.withOpacity(0.8),
+                        ),
                       ),
-                    ),
-                    IconButton(
-                      icon: Icon(Icons.menu, color: theme.colorScheme.onPrimary),
-                      onPressed: () {
-                        scaffoldKey.openDrawer();
+                      const SizedBox(height: 4),
+                      Text(
+                        apartment,
+                        style: theme.textTheme.bodyMedium?.copyWith(
+                          color: theme.colorScheme.onPrimary.withOpacity(0.8),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            trailing: Icon(
+              Icons.expand_more,
+              color: theme.colorScheme.onPrimary,
+            ),
+            children: [
+              Container(
+                color: theme.colorScheme.primary,
+                child: Column(
+                  children: [
+                    const Divider(height: 1, color: Colors.white24),
+                    ListTile(
+                      leading: Icon(
+                        Icons.settings,
+                        color: theme.colorScheme.onPrimary,
+                      ),
+                      title: Text(
+                        'Configurações',
+                        style: TextStyle(
+                          color: theme.colorScheme.onPrimary,
+                        ),
+                      ),
+                      onTap: () {
+                        debugPrint('Navegando para configurações...');
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => const SettingsView(),
+                          ),
+                        );
                       },
-                      tooltip: AppLocalizations.of(context).translate('menu'),
+                    ),
+                    ListTile(
+                      leading: Icon(
+                        Icons.person,
+                        color: theme.colorScheme.onPrimary,
+                      ),
+                      title: Text(
+                        'Perfil',
+                        style: TextStyle(
+                          color: theme.colorScheme.onPrimary,
+                        ),
+                      ),
+                      onTap: () => Navigator.pushNamed(context, '/profile'),
+                    ),
+                    ListTile(
+                      leading: Icon(
+                        Icons.logout,
+                        color: theme.colorScheme.onPrimary,
+                      ),
+                      title: Text(
+                        'Sair',
+                        style: TextStyle(
+                          color: theme.colorScheme.onPrimary,
+                        ),
+                      ),
+                      onTap: () async {
+                        await FirebaseAuth.instance.signOut();
+                        if (context.mounted) {
+                          Navigator.pushReplacementNamed(context, '/login');
+                        }
+                      },
                     ),
                   ],
                 ),
               ),
-            ),
+            ],
           ),
         );
       },
@@ -216,52 +260,6 @@ class HomeView extends StatelessWidget {
     final colorScheme = Theme.of(context).colorScheme;
 
     return Scaffold(
-      drawer: Drawer(
-        child: Column(
-          children: [
-            DrawerHeader(
-              decoration: BoxDecoration(
-                color: colorScheme.primary,
-              ),
-              child: Center(
-                child: Text(
-                  localizations.translate('menu'),
-                  style: TextStyle(
-                    color: colorScheme.onPrimary,
-                    fontSize: 20,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ),
-            ListTile(
-              leading: Icon(Icons.settings, color: colorScheme.primary),
-              title: Text(localizations.translate('settings')),
-              onTap: () {
-                debugPrint('HomeView: Navigating to settings');
-                Navigator.pop(context);
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (_) => const SettingsView()),
-                ).then((_) {
-                  debugPrint('HomeView: Returned from settings');
-                }).catchError((error) {
-                  debugPrint('HomeView: Error navigating to settings: $error');
-                });
-              },
-            ),
-            ListTile(
-              leading: Icon(Icons.logout, color: colorScheme.primary),
-              title: Text(localizations.translate('logout')),
-              onTap: () {
-                Navigator.pop(context);
-                Navigator.pushNamedAndRemoveUntil(
-                    context, AppRoutes.login, (route) => false);
-              },
-            ),
-          ],
-        ),
-      ),
       body: SafeArea(
         child: StreamBuilder<int>(
           stream: notificationController.getUnreadNotificationCount(),
@@ -286,7 +284,8 @@ class HomeView extends StatelessWidget {
 
                 if (roleSnapshot.hasError) {
                   return Center(
-                      child: Text(localizations.translate('error_fetching_role')));
+                      child:
+                          Text(localizations.translate('error_fetching_role')));
                 }
 
                 final userRole = roleSnapshot.data ?? 'unknown';
