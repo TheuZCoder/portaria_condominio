@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
+import 'dart:async';
 import '../../controllers/chat_controller.dart';
 import '../../controllers/auth_controller.dart';
 import '../../models/message_model.dart';
@@ -22,6 +23,7 @@ class ChatView extends StatefulWidget {
 class _ChatViewState extends State<ChatView> {
   final chatController = ChatController();
   final authController = AuthController();
+  StreamSubscription<List<Message>>? _messageSubscription;
 
   @override
   void initState() {
@@ -30,6 +32,21 @@ class _ChatViewState extends State<ChatView> {
     if (userId != null) {
       // Marca as mensagens como lidas assim que o chat é aberto
       _updateMessageStatus(widget.receiverId, userId);
+      
+      // Escuta novas mensagens e marca como lida automaticamente
+      _messageSubscription = chatController
+          .getMessages(userId, widget.receiverId)
+          .listen((messages) {
+        final unreadMessages = messages.where((msg) => 
+          msg.senderId == widget.receiverId && 
+          msg.receiverId == userId &&
+          msg.status != MessageStatus.read
+        );
+        
+        if (unreadMessages.isNotEmpty) {
+          _updateMessageStatus(widget.receiverId, userId);
+        }
+      });
     }
   }
 
@@ -40,6 +57,12 @@ class _ChatViewState extends State<ChatView> {
     } catch (e) {
       debugPrint('Erro ao atualizar status das mensagens: $e');
     }
+  }
+
+  @override
+  void dispose() {
+    _messageSubscription?.cancel();
+    super.dispose();
   }
 
   @override
