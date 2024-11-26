@@ -22,7 +22,25 @@ class ChatView extends StatefulWidget {
 class _ChatViewState extends State<ChatView> {
   final chatController = ChatController();
   final authController = AuthController();
-  bool _isFirstLoad = true;
+
+  @override
+  void initState() {
+    super.initState();
+    final userId = authController.currentUser?.uid;
+    if (userId != null) {
+      // Marca as mensagens como lidas assim que o chat é aberto
+      _updateMessageStatus(userId, widget.receiverId);
+    }
+  }
+
+  void _updateMessageStatus(String userId, String receiverId) async {
+    try {
+      await chatController.markAllAsDelivered(userId, receiverId);
+      await chatController.markAllAsRead(userId, receiverId);
+    } catch (e) {
+      debugPrint('Erro ao atualizar status das mensagens: $e');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -35,7 +53,7 @@ class _ChatViewState extends State<ChatView> {
       );
     }
 
-    final chatId = _generateChatId(userId, widget.receiverId);
+    _generateChatId(userId, widget.receiverId);
 
     return PopScope(
       canPop: true,
@@ -64,12 +82,6 @@ class _ChatViewState extends State<ChatView> {
                   }
 
                   final messages = snapshot.data!;
-
-                  // Marca mensagens como entregues/lidas na primeira carga
-                  if (_isFirstLoad) {
-                    _isFirstLoad = false;
-                    _updateMessageStatus(messages, userId, widget.receiverId);
-                  }
 
                   return ListView.builder(
                     reverse: true,
@@ -137,13 +149,11 @@ class _ChatViewState extends State<ChatView> {
                                           Icon(
                                             message.status == MessageStatus.sent
                                                 ? Icons.check
-                                                : message.status ==
-                                                        MessageStatus.delivered
+                                                : message.status == MessageStatus.delivered
                                                     ? Icons.done_all
                                                     : Icons.done_all,
                                             size: 16,
-                                            color: message.status ==
-                                                    MessageStatus.read
+                                            color: message.status == MessageStatus.read
                                                 ? Colors.blue[100]
                                                 : Colors.white70,
                                           ),
@@ -186,16 +196,5 @@ class _ChatViewState extends State<ChatView> {
     return userId.hashCode <= receiverId.hashCode
         ? '${userId}_$receiverId'
         : '${receiverId}_$userId';
-  }
-
-  void _updateMessageStatus(
-      List<Message> messages, String userId, String receiverId) {
-    // Se houver mensagens não entregues, marca como entregues
-    chatController.markAllAsDelivered(userId, receiverId);
-
-    // Se o chat estiver aberto, marca como lidas
-    if (mounted) {
-      chatController.markAllAsRead(userId, receiverId);
-    }
   }
 }
