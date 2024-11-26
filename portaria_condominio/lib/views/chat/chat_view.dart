@@ -35,8 +35,8 @@ class _ChatViewState extends State<ChatView> {
 
   void _updateMessageStatus(String receiverId, String userId) async {
     try {
-      await chatController.markAllAsDelivered(userId, receiverId);
-      await chatController.markAllAsRead(userId, receiverId);
+      await chatController.markAllAsDelivered(receiverId, userId);
+      await chatController.markAllAsRead(receiverId, userId);
     } catch (e) {
       debugPrint('Erro ao atualizar status das mensagens: $e');
     }
