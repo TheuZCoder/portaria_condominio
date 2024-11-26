@@ -29,11 +29,11 @@ class _ChatViewState extends State<ChatView> {
     final userId = authController.currentUser?.uid;
     if (userId != null) {
       // Marca as mensagens como lidas assim que o chat é aberto
-      _updateMessageStatus(userId, widget.receiverId);
+      _updateMessageStatus(widget.receiverId, userId);
     }
   }
 
-  void _updateMessageStatus(String userId, String receiverId) async {
+  void _updateMessageStatus(String receiverId, String userId) async {
     try {
       await chatController.markAllAsDelivered(userId, receiverId);
       await chatController.markAllAsRead(userId, receiverId);

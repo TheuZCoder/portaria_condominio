@@ -96,6 +96,7 @@ class ChatController {
           .doc(chatId)
           .collection('messages')
           .where('receiverId', isEqualTo: currentUserId)
+          .where('senderId', isEqualTo: senderId)
           .where('status', isEqualTo: MessageStatus.sent.index)
           .get();
 
@@ -118,6 +119,7 @@ class ChatController {
           .doc(chatId)
           .collection('messages')
           .where('receiverId', isEqualTo: currentUserId)
+          .where('senderId', isEqualTo: senderId)
           .where('status', isEqualTo: MessageStatus.delivered.index)
           .get();
 
