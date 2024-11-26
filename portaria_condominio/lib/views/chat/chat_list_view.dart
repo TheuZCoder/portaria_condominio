@@ -119,26 +119,48 @@ class _ChatListViewState extends State<ChatListView> {
 
       final lastMessage = await chatController.getLastMessage(currentUserId, otherUserId);
 
-      return ListTile(
-        leading: CircleAvatar(
-          backgroundColor: colorScheme.primary,
-          child: Text(
-            userName?.isNotEmpty == true ? userName![0].toUpperCase() : '?',
-            style: TextStyle(
-              color: colorScheme.onPrimary,
-              fontWeight: FontWeight.bold,
+      return StreamBuilder<int>(
+        stream: chatController.getUnreadMessagesCountStream(currentUserId, otherUserId),
+        builder: (context, unreadSnapshot) {
+          final unreadCount = unreadSnapshot.data ?? 0;
+
+          return ListTile(
+            leading: CircleAvatar(
+              backgroundColor: colorScheme.primary,
+              child: Text(
+                userName?.isNotEmpty == true ? userName![0].toUpperCase() : '?',
+                style: TextStyle(
+                  color: colorScheme.onPrimary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
             ),
-          ),
-        ),
-        title: Text(userName ?? 'Usuário'),
-        subtitle: Text(lastMessage ?? 'Sem mensagens'),
-        onTap: () {
-          Navigator.pushNamed(
-            context,
-            '/chat',
-            arguments: {
-              'otherUserId': otherUserId,
-              'userName': userName,
+            title: Text(userName ?? 'Usuário'),
+            subtitle: Text(lastMessage ?? 'Sem mensagens'),
+            trailing: unreadCount > 0 ? Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: colorScheme.primary,
+                shape: BoxShape.circle,
+              ),
+              child: Text(
+                unreadCount.toString(),
+                style: TextStyle(
+                  color: colorScheme.onPrimary,
+                  fontSize: 12,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ) : null,
+            onTap: () {
+              Navigator.pushNamed(
+                context,
+                '/chat',
+                arguments: {
+                  'otherUserId': otherUserId,
+                  'userName': userName,
+                },
+              );
             },
           );
         },

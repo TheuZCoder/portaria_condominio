@@ -169,6 +169,19 @@ class ChatController {
     }
   }
 
+  /// Obtém o stream de contagem de mensagens não lidas para um chat específico
+  Stream<int> getUnreadMessagesCountStream(String userId, String otherUserId) {
+    final chatId = _generateChatId(userId, otherUserId);
+    return _firestore
+        .collection('chats')
+        .doc(chatId)
+        .collection('messages')
+        .where('receiverId', isEqualTo: userId)
+        .where('status', whereIn: [MessageStatus.sent.index, MessageStatus.delivered.index])
+        .snapshots()
+        .map((snapshot) => snapshot.docs.length);
+  }
+
   /// Deleta uma mensagem
   Future<void> deleteMessage(String chatId, String messageId) async {
     try {
@@ -237,5 +250,28 @@ class ChatController {
     return userId.hashCode <= receiverId.hashCode
         ? '${userId}_$receiverId'
         : '${receiverId}_$userId';
+  }
+
+  /// Obtém o stream de contagem de mensagens não lidas para todos os chats
+  Stream<int> getTotalUnreadMessagesStream(String currentUserId) {
+    return _firestore
+        .collection('chats')
+        .where('participants', arrayContains: currentUserId)
+        .snapshots()
+        .asyncMap((snapshot) async {
+          int totalUnread = 0;
+          for (var doc in snapshot.docs) {
+            final chatId = doc.id;
+            final messagesQuery = await _firestore
+                .collection('chats')
+                .doc(chatId)
+                .collection('messages')
+                .where('receiverId', isEqualTo: currentUserId)
+                .where('status', whereIn: [MessageStatus.sent.index, MessageStatus.delivered.index])
+                .get();
+            totalUnread += messagesQuery.docs.length;
+          }
+          return totalUnread;
+        });
   }
 }
