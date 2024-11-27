@@ -58,10 +58,50 @@ class NotificationService {
     String? token = await _fcm.getToken();
     if (token != null) {
       await _saveTokenToFirestore(token);
+      // Iniciar monitoramento de notificações pendentes
+      _startListeningForPendingNotifications(token);
     }
 
     // Atualizar token quando for atualizado
-    _fcm.onTokenRefresh.listen(_saveTokenToFirestore);
+    _fcm.onTokenRefresh.listen((String token) {
+      _saveTokenToFirestore(token);
+      // Atualizar monitoramento com novo token
+      _startListeningForPendingNotifications(token);
+    });
+  }
+
+  // Método para monitorar notificações pendentes
+  void _startListeningForPendingNotifications(String token) {
+    _firestore
+        .collection('notifications_queue')
+        .where('token', isEqualTo: token)
+        .where('status', isEqualTo: 'pending')
+        .snapshots()
+        .listen((snapshot) async {
+      for (var change in snapshot.docChanges) {
+        if (change.type == DocumentChangeType.added) {
+          final notification = change.doc.data();
+          if (notification != null) {
+            // Mostrar notificação local
+            await showLocalNotification(
+              title: notification['notification']['title'] ?? '',
+              body: notification['notification']['body'] ?? '',
+              payload: notification['data']?['type'] == 'chat_message'
+                  ? 'chat:${notification['data']['senderId']}'
+                  : notification['data']?['notificationId'],
+            );
+
+            // Atualizar status da notificação
+            await change.doc.reference.update({
+              'status': 'delivered',
+              'deliveredAt': FieldValue.serverTimestamp(),
+            });
+          }
+        }
+      }
+    }, onError: (error) {
+      debugPrint('Error listening for notifications: $error');
+    });
   }
 
   void _handleNotificationTap(String? payload) {
