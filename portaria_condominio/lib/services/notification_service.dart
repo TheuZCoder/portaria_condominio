@@ -86,7 +86,7 @@ class NotificationService {
   Future<void> _saveTokenToFirestore(String token) async {
     final user = FirebaseAuth.instance.currentUser;
     if (user != null) {
-      final userDoc = _firestore.collection('users').doc(user.uid);
+      final userDoc = _firestore.collection('moradores').doc(user.uid);
       final docSnapshot = await userDoc.get();
 
       if (docSnapshot.exists) {
@@ -110,9 +110,8 @@ class NotificationService {
     debugPrint('Received foreground message: ${message.messageId}');
 
     RemoteNotification? notification = message.notification;
-    AndroidNotification? android = message.notification?.android;
 
-    if (notification != null && android != null) {
+    if (notification != null) {
       String? payload;
       if (message.data['type'] == 'chat_message') {
         payload = 'chat:${message.data['senderId']}';
@@ -142,7 +141,7 @@ class NotificationService {
   }) async {
     try {
       // Buscar o token FCM do usuário
-      final userDoc = await _firestore.collection('users').doc(userId).get();
+      final userDoc = await _firestore.collection('moradores').doc(userId).get();
       final fcmToken = userDoc.data()?['fcmToken'] as String?;
 
       if (fcmToken == null) {
