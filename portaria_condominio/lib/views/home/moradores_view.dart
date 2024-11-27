@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:portaria_condominio/controllers/morador_controller.dart';
@@ -6,6 +8,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../models/morador_model.dart';
 import '../../localizations/app_localizations.dart';
 import '../../views/chat/chat_view.dart';
+import '../photo_registration/photo_registration_screen.dart';
 import 'mapa_view.dart';
 
 class MoradoresView extends StatefulWidget {
@@ -132,16 +135,7 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
                               padding: const EdgeInsets.all(8.0),
                               child: Row(
                                 children: [
-                                  Hero(
-                                    tag: 'avatar_${morador.id}',
-                                    child: CircleAvatar(
-                                      backgroundColor: colorScheme.primary,
-                                      child: Text(
-                                        morador.nome[0].toUpperCase(),
-                                        style: TextStyle(color: colorScheme.onPrimary),
-                                      ),
-                                    ),
-                                  ),
+                                  _buildAvatar(morador.photoURL),
                                   const SizedBox(width: 16),
                                   Expanded(
                                     child: Column(
@@ -257,6 +251,87 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
             },
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildAvatar(String? photoURL) {
+    if (photoURL != null && photoURL.startsWith('data:image')) {
+      try {
+        // Extrair o base64 da string (removendo o prefixo data:image/jpeg;base64,)
+        final base64String = photoURL.split(',')[1];
+        return Hero(
+          tag: 'avatar_${DateTime.now().millisecondsSinceEpoch}',
+          child: CircleAvatar(
+            radius: 30,
+            backgroundImage: MemoryImage(base64Decode(base64String)),
+            backgroundColor: Colors.grey[300],
+            onBackgroundImageError: (exception, stackTrace) {
+              debugPrint('Erro ao carregar imagem: $exception');
+              return;
+            },
+          ),
+        );
+      } catch (e) {
+        debugPrint('Erro ao decodificar base64: $e');
+        return _buildDefaultAvatar();
+      }
+    } else {
+      return _buildDefaultAvatar();
+    }
+  }
+
+  Widget _buildDefaultAvatar() {
+    return Hero(
+      tag: 'avatar_default_${DateTime.now().millisecondsSinceEpoch}',
+      child: CircleAvatar(
+        radius: 30,
+        backgroundColor: Colors.grey[300],
+        child: Icon(
+          Icons.person,
+          size: 30,
+          color: Colors.grey[600],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildLargeAvatar(String? photoURL) {
+    if (photoURL != null && photoURL.startsWith('data:image')) {
+      try {
+        final base64String = photoURL.split(',')[1];
+        return Hero(
+          tag: 'avatar_large_${DateTime.now().millisecondsSinceEpoch}',
+          child: CircleAvatar(
+            radius: 50,
+            backgroundImage: MemoryImage(base64Decode(base64String)),
+            backgroundColor: Colors.grey[300],
+            onBackgroundImageError: (exception, stackTrace) {
+              debugPrint('Erro ao carregar imagem grande: $exception');
+              return;
+            },
+          ),
+        );
+      } catch (e) {
+        debugPrint('Erro ao decodificar base64 (imagem grande): $e');
+        return _buildLargeDefaultAvatar();
+      }
+    } else {
+      return _buildLargeDefaultAvatar();
+    }
+  }
+
+  Widget _buildLargeDefaultAvatar() {
+    return Hero(
+      tag: 'avatar_large_default_${DateTime.now().millisecondsSinceEpoch}',
+      child: CircleAvatar(
+        radius: 50,
+        backgroundColor: Colors.grey[300],
+        child: Icon(
+          Icons.person,
+          size: 50,
+          color: Colors.grey[600],
+        ),
       ),
     );
   }
@@ -477,41 +552,48 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
                                   if (_formKey.currentState!.validate()) {
                                     setState(() => isLoading = true);
                                     
-                                    final moradoresController =
-                                        Provider.of<MoradorController>(context, listen: false);
-
-                                    final novoDados = Morador(
-                                      id: morador?.id ?? '',
-                                      nome: nomeController.text,
-                                      cpf: cpfController.text,
-                                      telefone: telefoneController.text,
-                                      email: emailController.text,
-                                      senha: senhaController.text.isEmpty
-                                          ? morador?.senha ?? ''
-                                          : senhaController.text,
-                                      endereco: enderecoController.text,
-                                      numeroCasa: numeroCasaController.text,
-                                      role: morador?.role ?? 'morador',
-                                    );
-
                                     try {
+                                      final novoDados = Morador(
+                                        id: morador?.id ?? '',
+                                        nome: nomeController.text,
+                                        cpf: cpfController.text,
+                                        telefone: telefoneController.text,
+                                        email: emailController.text,
+                                        senha: senhaController.text.isEmpty
+                                            ? morador?.senha ?? ''
+                                            : senhaController.text,
+                                        endereco: enderecoController.text,
+                                        numeroCasa: numeroCasaController.text,
+                                        role: morador?.role ?? 'morador',
+                                        photoURL: morador?.photoURL,
+                                      );
+
                                       if (isEditing) {
-                                        await moradoresController.atualizarMorador(novoDados);
+                                        await _controller.atualizarMorador(novoDados);
                                       } else {
-                                        await moradoresController.cadastrarMorador(novoDados);
+                                        await _controller.cadastrarMorador(novoDados);
                                       }
-                                      if (context.mounted) {
-                                        Navigator.of(context).pop();
+
+                                      if (mounted) {
                                         setState(() {
                                           _futureMoradores = _controller.buscarTodosMoradores();
                                         });
+                                        Navigator.of(context).pop();
+                                        ScaffoldMessenger.of(context).showSnackBar(
+                                          SnackBar(
+                                            content: Text(isEditing 
+                                              ? 'Morador atualizado com sucesso!' 
+                                              : 'Morador cadastrado com sucesso!'),
+                                            backgroundColor: Colors.green,
+                                          ),
+                                        );
                                       }
                                     } catch (e) {
-                                      if (context.mounted) {
+                                      if (mounted) {
                                         ScaffoldMessenger.of(context).showSnackBar(
                                           SnackBar(
                                             content: Text('Erro ao ${isEditing ? 'atualizar' : 'cadastrar'} morador: $e'),
-                                            backgroundColor: Theme.of(context).colorScheme.error,
+                                            backgroundColor: Colors.red,
                                           ),
                                         );
                                       }
@@ -545,6 +627,50 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: [
+                            Center(
+                              child: Stack(
+                                children: [
+                                  _buildLargeAvatar(morador?.photoURL),
+                                  Positioned(
+                                    right: -10,
+                                    bottom: -10,
+                                    child: IconButton(
+                                      icon: const Icon(Icons.camera_alt),
+                                      onPressed: () async {
+                                        if (morador?.id == null) {
+                                          // Show message if trying to add photo before saving
+                                          ScaffoldMessenger.of(context).showSnackBar(
+                                            SnackBar(
+                                              content: Text(AppLocalizations.of(context)
+                                                  .translate('complete_registration_first')),
+                                              backgroundColor: Colors.orange,
+                                            ),
+                                          );
+                                          return;
+                                        }
+
+                                        final result = await Navigator.push<bool>(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) => PhotoRegistrationScreen(
+                                              userType: 'resident',
+                                              userId: morador!.id,
+                                            ),
+                                          ),
+                                        );
+
+                                        if (result == true && mounted) {
+                                          setState(() {
+                                            _futureMoradores = _controller.buscarTodosMoradores();
+                                          });
+                                        }
+                                      },
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                            const SizedBox(height: 24),
                             TextFormField(
                               controller: nomeController,
                               decoration: const InputDecoration(

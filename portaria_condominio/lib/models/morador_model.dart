@@ -10,6 +10,7 @@ class Morador {
   final String endereco;
   final String numeroCasa; // Número da casa no condomínio
   final String role;
+  final String? photoURL; // URL da foto do morador
 
   // Construtor
   Morador({
@@ -22,6 +23,7 @@ class Morador {
     required this.endereco,
     required this.numeroCasa,
     this.role = 'morador',
+    this.photoURL,
   });
 
   // Construtor para criar um Morador a partir de um documento Firestore
@@ -37,6 +39,7 @@ class Morador {
       endereco: data['endereco'] ?? '',
       numeroCasa: data['numeroCasa'] ?? '',
       role: data['role'] ?? 'morador',
+      photoURL: data['photoURL'],
     );
   }
 
@@ -51,6 +54,7 @@ class Morador {
       'endereco': endereco,
       'numeroCasa': numeroCasa,
       'role': role,
+      'photoURL': photoURL,
     };
   }
 }

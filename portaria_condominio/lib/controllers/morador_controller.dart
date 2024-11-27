@@ -86,6 +86,17 @@ class MoradorController {
     }
   }
 
+  /// **UPDATE** - Atualizar a foto do morador
+  Future<void> atualizarFotoMorador(String id, String fotoBase64) async {
+    try {
+      await _moradoresCollection.doc(id).update({
+        'photoURL': fotoBase64,
+      });
+    } catch (e) {
+      throw Exception('Erro ao atualizar foto do morador: $e');
+    }
+  }
+
   /// **DELETE** - Excluir um morador
   Future<void> excluirMorador(String id) async {
     try {
