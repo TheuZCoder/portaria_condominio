@@ -8,6 +8,7 @@ class NotificationService {
   final FirebaseMessaging _fcm = FirebaseMessaging.instance;
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
+  final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
   // Canal de notificação para Android
   static const AndroidNotificationChannel channel = AndroidNotificationChannel(
@@ -44,8 +45,7 @@ class NotificationService {
     await _localNotifications.initialize(
       initializationSettings,
       onDidReceiveNotificationResponse: (NotificationResponse details) {
-        debugPrint('Notification clicked: ${details.payload}');
-        // Aqui você pode adicionar a navegação para a tela de notificações
+        _handleNotificationTap(details.payload);
       },
     );
 
@@ -62,6 +62,25 @@ class NotificationService {
 
     // Atualizar token quando for atualizado
     _fcm.onTokenRefresh.listen(_saveTokenToFirestore);
+  }
+
+  void _handleNotificationTap(String? payload) {
+    if (payload == null) return;
+
+    final context = navigatorKey.currentContext;
+    if (context == null) return;
+
+    if (payload.startsWith('chat:')) {
+      // Navegar para o chat específico
+      final senderId = payload.split(':')[1];
+      Navigator.of(context).pushNamed(
+        '/chat',
+        arguments: {'userId': senderId},
+      );
+    } else {
+      // Navegar para a tela de notificações
+      Navigator.of(context).pushNamed('/notifications');
+    }
   }
 
   Future<void> _saveTokenToFirestore(String token) async {
@@ -94,22 +113,17 @@ class NotificationService {
     AndroidNotification? android = message.notification?.android;
 
     if (notification != null && android != null) {
-      await _localNotifications.show(
-        notification.hashCode,
-        notification.title,
-        notification.body,
-        NotificationDetails(
-          android: AndroidNotificationDetails(
-            channel.id,
-            channel.name,
-            icon: android.smallIcon,
-            importance: Importance.max,
-            priority: Priority.high,
-            playSound: true,
-            enableVibration: true,
-          ),
-        ),
-        payload: message.data.toString(),
+      String? payload;
+      if (message.data['type'] == 'chat_message') {
+        payload = 'chat:${message.data['senderId']}';
+      } else {
+        payload = message.data['notificationId'];
+      }
+
+      await showLocalNotification(
+        title: notification.title ?? '',
+        body: notification.body ?? '',
+        payload: payload,
       );
     }
   }
@@ -169,6 +183,47 @@ class NotificationService {
       debugPrint('Error sending notification: $e');
       rethrow;
     }
+  }
+
+  Future<void> showLocalNotification({
+    required String title,
+    required String body,
+    String? payload,
+  }) async {
+    final androidDetails = AndroidNotificationDetails(
+      channel.id,
+      channel.name,
+      channelDescription: 'Canal para notificações importantes',
+      importance: Importance.max,
+      priority: Priority.high,
+      icon: '@mipmap/ic_launcher',
+      enableLights: true,
+      enableVibration: true,
+      playSound: true,
+      sound: RawResourceAndroidNotificationSound('notification'),
+      largeIcon: const DrawableResourceAndroidBitmap('@mipmap/ic_launcher'),
+      styleInformation: BigTextStyleInformation(
+        body,
+        contentTitle: title,
+      ),
+      category: AndroidNotificationCategory.message,
+    );
+
+    await _localNotifications.show(
+      DateTime.now().millisecond,
+      title,
+      body,
+      NotificationDetails(android: androidDetails),
+      payload: payload,
+    );
+  }
+
+  Future<void> cancelAllNotifications() async {
+    await _localNotifications.cancelAll();
+  }
+
+  Future<void> cancelNotification(int id) async {
+    await _localNotifications.cancel(id);
   }
 }
 
