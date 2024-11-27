@@ -25,17 +25,10 @@ class ChatController {
           .add(message.toJson());
 
       // Buscar informações do remetente
-      final senderDoc = await _firestore.collection('users').doc(message.senderId).get();
-      final senderName = senderDoc.data()?['name'] ?? 'Usuário';
+      final senderDoc = await _firestore.collection('moradores').doc(message.senderId).get();
+      final senderName = senderDoc.data()?['nome'] ?? 'Usuário';
 
-      // Enviar notificação local
-      await _notificationService.showLocalNotification(
-        title: 'Nova mensagem de $senderName',
-        body: message.content,
-        payload: 'chat:${message.senderId}',
-      );
-
-      // Enviar notificação push
+      // Enviar notificação push para o destinatário
       await _notificationService.sendNotificationToUser(
         userId: message.receiverId,
         title: 'Nova mensagem de $senderName',
