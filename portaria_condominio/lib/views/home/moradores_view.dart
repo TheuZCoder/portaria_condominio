@@ -3,7 +3,6 @@ import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:portaria_condominio/controllers/morador_controller.dart';
-import 'package:provider/provider.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../models/morador_model.dart';
 import '../../localizations/app_localizations.dart';
@@ -521,7 +520,7 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
     bool isLoading = false;
     final isEditing = morador != null;
 
-    await showGeneralDialog(
+    final dialogResult = await showGeneralDialog(
       context: context,
       barrierDismissible: false,
       barrierLabel: 'Cadastro de Morador',
@@ -602,29 +601,16 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
                                         await _controller.cadastrarMorador(novoDados);
                                       }
 
-                                      if (mounted) {
-                                        setState(() {
-                                          _futureMoradores = _controller.buscarTodosMoradores();
-                                        });
-                                        Navigator.of(context).pop();
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text(isEditing 
-                                              ? 'Morador atualizado com sucesso!' 
-                                              : 'Morador cadastrado com sucesso!'),
-                                            backgroundColor: Colors.green,
-                                          ),
-                                        );
-                                      }
+                                      if (!context.mounted) return;
+                                      Navigator.of(context).pop(true); // Retorna true para indicar sucesso
                                     } catch (e) {
-                                      if (mounted) {
-                                        ScaffoldMessenger.of(context).showSnackBar(
-                                          SnackBar(
-                                            content: Text('Erro ao ${isEditing ? 'atualizar' : 'cadastrar'} morador: $e'),
-                                            backgroundColor: Colors.red,
-                                          ),
-                                        );
-                                      }
+                                      if (!context.mounted) return;
+                                      ScaffoldMessenger.of(context).showSnackBar(
+                                        SnackBar(
+                                          content: Text('Erro ao ${isEditing ? 'atualizar' : 'cadastrar'} morador: $e'),
+                                          backgroundColor: Colors.red,
+                                        ),
+                                      );
                                     } finally {
                                       if (mounted) {
                                         setState(() => isLoading = false);
@@ -852,6 +838,21 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
         );
       },
     );
+
+    // Verifica se o diálogo foi fechado com sucesso
+    if (mounted && dialogResult == true) {
+      setState(() {
+        _futureMoradores = _controller.buscarTodosMoradores();
+      });
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(isEditing 
+            ? 'Morador atualizado com sucesso!' 
+            : 'Morador cadastrado com sucesso!'),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
   }
 
   Future<void> _confirmarExclusao(Morador morador) async {
