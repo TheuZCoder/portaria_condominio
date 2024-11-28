@@ -9,11 +9,13 @@ import '../../controllers/morador_controller.dart';
 class PhotoRegistrationScreen extends StatefulWidget {
   final String userType;
   final String userId;
+  final bool returnPhotoData;
 
   const PhotoRegistrationScreen({
     super.key,
     required this.userType,
     required this.userId,
+    this.returnPhotoData = false,
   });
 
   @override
@@ -41,6 +43,8 @@ class _PhotoRegistrationScreenState extends State<PhotoRegistrationScreen> {
 
       if (photo == null) return;
 
+      if (!mounted) return;
+
       setState(() {
         _imageFile = File(photo.path);
         _isUploading = true;
@@ -63,28 +67,56 @@ class _PhotoRegistrationScreenState extends State<PhotoRegistrationScreen> {
         throw Exception('Falha ao comprimir a imagem');
       }
 
-      // Converte para base64
+      print('Imagem comprimida com sucesso');
+      print('Tamanho dos bytes comprimidos: ${_compressedImageBytes!.length}');
+
+      // Converte para base64 (sem prefixo)
       final base64Image = base64Encode(_compressedImageBytes!);
-      final photoData = 'data:image/jpeg;base64,$base64Image';
+      
+      print('Imagem convertida para base64');
+      print('Tamanho do base64: ${base64Image.length}');
 
       // Limpa o arquivo temporário
       await _imageFile!.delete();
+
+      if (!mounted) return;
 
       setState(() {
         _isUploading = false;
         _uploadStatus = 'Foto processada com sucesso!';
       });
 
-      if (mounted) {
-        Navigator.pop(context, photoData);
+      // Aguarda um pequeno delay antes de fechar a tela
+      await Future.delayed(const Duration(milliseconds: 100));
+
+      if (!mounted) return;
+
+      // Retorna o resultado apropriado baseado no parâmetro returnPhotoData
+      if (widget.returnPhotoData) {
+        print('Retornando dados da foto para a tela de cadastro');
+        Navigator.of(context).pop(base64Image);
+      } else {
+        print('Salvando foto diretamente no banco');
+        // Se não precisamos retornar os dados da foto, tentamos salvá-la diretamente
+        try {
+          await _moradorController.atualizarFotoMorador(widget.userId, base64Image);
+          print('Foto salva com sucesso no banco');
+          Navigator.of(context).pop(true);
+        } catch (e) {
+          print('Erro ao salvar foto no banco: $e');
+          throw Exception('Falha ao salvar foto: $e');
+        }
       }
 
     } catch (e) {
+      if (!mounted) return;
       _handleError(e);
     }
   }
 
   void _handleError(dynamic error) {
+    if (!mounted) return;
+    
     setState(() {
       _isUploading = false;
       _uploadStatus = 'Erro ao processar foto';

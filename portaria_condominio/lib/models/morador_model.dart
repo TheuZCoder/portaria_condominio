@@ -45,7 +45,13 @@ class Morador {
 
   // Método para converter o Morador em um mapa (JSON) para salvar no Firestore
   Map<String, dynamic> toJson() {
-    return {
+    print('Convertendo Morador para JSON');
+    print('photoURL presente? ${photoURL != null ? 'Sim' : 'Não'}');
+    if (photoURL != null) {
+      print('Tamanho do photoURL: ${photoURL!.length} caracteres');
+    }
+
+    final json = {
       'nome': nome,
       'cpf': cpf,
       'telefone': telefone,
@@ -56,5 +62,18 @@ class Morador {
       'role': role,
       'photoURL': photoURL,
     };
+
+    print('JSON gerado com os seguintes campos:');
+    json.forEach((key, value) {
+      if (key != 'photoURL' && key != 'senha') {
+        print('$key: $value');
+      } else if (key == 'photoURL') {
+        print('photoURL: ${value != null ? '${value.toString().length} caracteres' : 'null'}');
+      } else {
+        print('$key: ***');
+      }
+    });
+
+    return json;
   }
 }

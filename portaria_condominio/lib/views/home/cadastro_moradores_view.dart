@@ -29,18 +29,20 @@ class _CadastroMoradoresViewState extends State<CadastroMoradoresView> {
 
   String? _photoURL;
   bool _isLoading = false;
+  late Morador? _currentMorador;  // Variável para manter o estado atual do morador
 
   @override
   void initState() {
     super.initState();
-    if (widget.morador != null) {
-      _nomeController.text = widget.morador!.nome;
-      _cpfController.text = widget.morador!.cpf;
-      _telefoneController.text = widget.morador!.telefone;
-      _enderecoController.text = widget.morador!.endereco;
-      _emailController.text = widget.morador!.email;
-      _numeroCasaController.text = widget.morador!.numeroCasa;
-      _photoURL = widget.morador!.photoURL;
+    _currentMorador = widget.morador;  // Inicializa com o morador recebido
+    if (_currentMorador != null) {
+      _nomeController.text = _currentMorador!.nome;
+      _cpfController.text = _currentMorador!.cpf;
+      _telefoneController.text = _currentMorador!.telefone;
+      _enderecoController.text = _currentMorador!.endereco;
+      _emailController.text = _currentMorador!.email;
+      _numeroCasaController.text = _currentMorador!.numeroCasa;
+      _photoURL = _currentMorador!.photoURL;
     }
   }
 
@@ -80,7 +82,7 @@ class _CadastroMoradoresViewState extends State<CadastroMoradoresView> {
                     _buildAvatar(_photoURL),
                     const SizedBox(height: 10),
                     TextButton.icon(
-                      onPressed: _isLoading ? null : _handlePhotoRegistration,
+                      onPressed: _handlePhotoRegistration,
                       icon: const Icon(Icons.camera_alt),
                       label: Text(_photoURL == null
                           ? localizations.translate('add_photo')
@@ -231,25 +233,54 @@ class _CadastroMoradoresViewState extends State<CadastroMoradoresView> {
   }
 
   Future<void> _handlePhotoRegistration() async {
+    // Verifica se os campos obrigatórios estão preenchidos
+    if (!_formKey.currentState!.validate()) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(AppLocalizations.of(context).translate('fill_required_fields')),
+          backgroundColor: Colors.red,
+        ),
+      );
+      return;
+    }
+
     final photoData = await Navigator.push<String>(
       context,
       MaterialPageRoute(
         builder: (context) => PhotoRegistrationScreen(
           userType: 'resident',
-          userId: widget.morador?.id ?? '',
+          userId: _currentMorador?.id ?? '',
+          returnPhotoData: true, // Queremos os dados da foto para o cadastro
         ),
       ),
     );
 
     if (photoData != null) {
-      setState(() {
-        _photoURL = photoData;
-      });
+      print('Foto recebida com ${photoData.length} caracteres');
 
       // Se já existe um morador, atualiza a foto no banco
-      if (widget.morador?.id != null) {
+      if (_currentMorador?.id != null) {
         try {
-          await _controller.atualizarFotoMorador(widget.morador!.id, photoData);
+          await _controller.atualizarFotoMorador(_currentMorador!.id, photoData);
+          
+          // Atualiza o morador com a nova foto
+          _currentMorador = Morador(
+            id: _currentMorador!.id,
+            nome: _currentMorador!.nome,
+            cpf: _currentMorador!.cpf,
+            telefone: _currentMorador!.telefone,
+            email: _currentMorador!.email,
+            senha: _currentMorador!.senha,
+            endereco: _currentMorador!.endereco,
+            numeroCasa: _currentMorador!.numeroCasa,
+            role: _currentMorador!.role,
+            photoURL: photoData,  // Atualiza a foto
+          );
+
+          setState(() {
+            _photoURL = photoData;
+          });
+
           if (mounted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
@@ -268,8 +299,12 @@ class _CadastroMoradoresViewState extends State<CadastroMoradoresView> {
             );
           }
         }
+      } else {
+        // Se for um novo morador, apenas atualiza o estado
+        setState(() {
+          _photoURL = photoData;
+        });
       }
-      // Se for um novo morador, a foto será salva junto com os outros dados no _submitForm
     }
   }
 
@@ -279,31 +314,42 @@ class _CadastroMoradoresViewState extends State<CadastroMoradoresView> {
     setState(() => _isLoading = true);
 
     try {
+      print('Criando morador com foto: ${_photoURL != null ? 'Sim' : 'Não'}');
+      if (_photoURL != null) {
+        print('Tamanho da foto: ${_photoURL!.length} caracteres');
+      }
+
       final morador = Morador(
-        id: widget.morador?.id ?? '',
+        id: _currentMorador?.id ?? '',
         nome: _nomeController.text,
         cpf: _cpfController.text,
         telefone: _telefoneController.text,
         endereco: _enderecoController.text,
         email: _emailController.text,
-        senha: widget.morador?.senha ?? _senhaController.text,
+        senha: _currentMorador?.senha ?? _senhaController.text,
         numeroCasa: _numeroCasaController.text,
-        role: widget.morador?.role ?? 'morador',
-        photoURL: _photoURL,
+        role: _currentMorador?.role ?? 'morador',
+        photoURL: _photoURL ?? _currentMorador?.photoURL,
       );
 
-      if (widget.morador != null) {
+      print('Morador criado com foto: ${morador.photoURL != null ? 'Sim' : 'Não'}');
+
+      if (_currentMorador != null) {
+        print('Atualizando morador existente');
         await _controller.atualizarMorador(morador);
       } else {
+        print('Cadastrando novo morador');
         await _controller.cadastrarMorador(morador);
       }
 
+      print('Operação concluída com sucesso');
+
       if (mounted) {
-        final successMessage = widget.morador != null
+        final successMessage = _currentMorador != null
             ? AppLocalizations.of(context).translate('resident_updated')
             : AppLocalizations.of(context).translate('resident_registered');
 
-        if (widget.morador == null && _photoURL == null) {
+        if (_currentMorador == null && _photoURL == null) {
           // If it's a new registration and no photo was added, prompt for photo
           final shouldAddPhoto = await showDialog<bool>(
             context: context,

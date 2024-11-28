@@ -256,10 +256,15 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
   }
 
   Widget _buildAvatar(String? photoURL) {
-    if (photoURL != null && photoURL.startsWith('data:image')) {
+    if (photoURL != null && photoURL.isNotEmpty) {
       try {
-        // Extrair o base64 da string (removendo o prefixo data:image/jpeg;base64,)
-        final base64String = photoURL.split(',')[1];
+        String base64String;
+        if (photoURL.startsWith('data:image')) {
+          base64String = photoURL.split(',')[1];
+        } else {
+          base64String = photoURL;
+        }
+
         return Hero(
           tag: 'avatar_${DateTime.now().millisecondsSinceEpoch}',
           child: CircleAvatar(
@@ -276,9 +281,8 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
         debugPrint('Erro ao decodificar base64: $e');
         return _buildDefaultAvatar();
       }
-    } else {
-      return _buildDefaultAvatar();
     }
+    return _buildDefaultAvatar();
   }
 
   Widget _buildDefaultAvatar() {
@@ -297,9 +301,15 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
   }
 
   Widget _buildLargeAvatar(String? photoURL) {
-    if (photoURL != null && photoURL.startsWith('data:image')) {
+    if (photoURL != null && photoURL.isNotEmpty) {
       try {
-        final base64String = photoURL.split(',')[1];
+        String base64String;
+        if (photoURL.startsWith('data:image')) {
+          base64String = photoURL.split(',')[1];
+        } else {
+          base64String = photoURL;
+        }
+
         return Hero(
           tag: 'avatar_large_${DateTime.now().millisecondsSinceEpoch}',
           child: CircleAvatar(
@@ -316,9 +326,8 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
         debugPrint('Erro ao decodificar base64 (imagem grande): $e');
         return _buildLargeDefaultAvatar();
       }
-    } else {
-      return _buildLargeDefaultAvatar();
     }
+    return _buildLargeDefaultAvatar();
   }
 
   Widget _buildLargeDefaultAvatar() {
@@ -565,11 +574,30 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
                                         endereco: enderecoController.text,
                                         numeroCasa: numeroCasaController.text,
                                         role: morador?.role ?? 'morador',
-                                        photoURL: morador?.photoURL,
+                                        photoURL: morador?.photoURL, // Mantém a foto atual
                                       );
 
                                       if (isEditing) {
-                                        await _controller.atualizarMorador(novoDados);
+                                        // Busca o morador atual para obter a foto mais recente
+                                        final moradorAtual = await _controller.buscarMorador(morador!.id);
+                                        if (moradorAtual != null) {
+                                          // Cria um novo morador com os dados atualizados e a foto mais recente
+                                          final moradorAtualizado = Morador(
+                                            id: novoDados.id,
+                                            nome: novoDados.nome,
+                                            cpf: novoDados.cpf,
+                                            telefone: novoDados.telefone,
+                                            email: novoDados.email,
+                                            senha: novoDados.senha,
+                                            endereco: novoDados.endereco,
+                                            numeroCasa: novoDados.numeroCasa,
+                                            role: novoDados.role,
+                                            photoURL: moradorAtual.photoURL, // Usa a foto mais recente
+                                          );
+                                          await _controller.atualizarMorador(moradorAtualizado);
+                                        } else {
+                                          await _controller.atualizarMorador(novoDados);
+                                        }
                                       } else {
                                         await _controller.cadastrarMorador(novoDados);
                                       }
@@ -649,20 +677,58 @@ class _MoradoresViewState extends State<MoradoresView> with TickerProviderStateM
                                           return;
                                         }
 
-                                        final result = await Navigator.push<bool>(
+                                        final photoData = await Navigator.push<String>(
                                           context,
                                           MaterialPageRoute(
                                             builder: (context) => PhotoRegistrationScreen(
                                               userType: 'resident',
                                               userId: morador!.id,
+                                              returnPhotoData: true, // Queremos os dados da foto para atualizar o estado
                                             ),
                                           ),
                                         );
 
-                                        if (result == true && mounted) {
-                                          setState(() {
-                                            _futureMoradores = _controller.buscarTodosMoradores();
-                                          });
+                                        if (photoData != null && mounted) {
+                                          try {
+                                            // Atualiza a foto no banco
+                                            await _controller.atualizarFotoMorador(morador!.id, photoData);
+
+                                            // Atualiza o objeto morador com a nova foto
+                                            final moradorAtualizado = Morador(
+                                              id: morador.id,
+                                              nome: morador.nome,
+                                              cpf: morador.cpf,
+                                              telefone: morador.telefone,
+                                              email: morador.email,
+                                              senha: morador.senha,
+                                              endereco: morador.endereco,
+                                              numeroCasa: morador.numeroCasa,
+                                              role: morador.role,
+                                              photoURL: photoData,
+                                            );
+
+                                            // Atualiza o morador no banco com todos os dados
+                                            await _controller.atualizarMorador(moradorAtualizado);
+
+                                            // Atualiza a lista de moradores
+                                            setState(() {
+                                              _futureMoradores = _controller.buscarTodosMoradores();
+                                            });
+
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              const SnackBar(
+                                                content: Text('Foto atualizada com sucesso!'),
+                                                backgroundColor: Colors.green,
+                                              ),
+                                            );
+                                          } catch (e) {
+                                            ScaffoldMessenger.of(context).showSnackBar(
+                                              SnackBar(
+                                                content: Text('Erro ao atualizar foto: $e'),
+                                                backgroundColor: Colors.red,
+                                              ),
+                                            );
+                                          }
                                         }
                                       },
                                     ),
